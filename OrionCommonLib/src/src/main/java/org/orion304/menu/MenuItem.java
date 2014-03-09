@@ -1,6 +1,7 @@
 package src.main.java.org.orion304.menu;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -22,11 +23,21 @@ public class MenuItem {
 	}
 
 	public MenuItem(String itemName, Material itemType, int stackSize,
-			byte data, String... lore) {
+			byte data, List<String> lore) {
 		this(itemName, itemType, stackSize, data);
 		ItemMeta meta = this.item.getItemMeta();
-		meta.setLore(Arrays.asList(lore));
+		meta.setLore(lore);
 		this.item.setItemMeta(meta);
+	}
+
+	public MenuItem(String itemName, Material itemType, int stackSize,
+			byte data, String... lore) {
+		this(itemName, itemType, stackSize, data, Arrays.asList(lore));
+	}
+
+	public MenuItem(String itemName, Material itemType, int stackSize,
+			List<String> lore) {
+		this(itemName, itemType, stackSize, (byte) 0, lore);
 	}
 
 	public MenuItem(String itemName, Material itemType, int stackSize,

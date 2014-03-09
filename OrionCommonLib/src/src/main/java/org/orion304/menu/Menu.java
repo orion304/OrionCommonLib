@@ -10,6 +10,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
+import src.main.java.org.orion304.OrionPlugin;
 import src.main.java.org.orion304.utils.MathUtils;
 
 public class Menu {
@@ -17,23 +18,28 @@ public class Menu {
 	private final List<MenuItem> items = new ArrayList<>();
 
 	private final Inventory inventory;
+	private final OrionPlugin plugin;
 
-	public Menu(String title, int slots) {
+	public Menu(OrionPlugin plugin, String title, int slots) {
+		this.plugin = plugin;
 		this.inventory = Bukkit.createInventory(null,
 				MathUtils.getMultipleOfNine(slots), title);
+		this.inventory.setMaxStackSize(430);
 	}
 
-	public Menu(String title, int slots, Collection<MenuItem> items) {
-		this(title, slots);
+	public Menu(OrionPlugin plugin, String title, int slots,
+			Collection<MenuItem> items) {
+		this(plugin, title, slots);
 		addMenuItems(items);
 	}
 
-	public Menu(String title, int slots, MenuItem... items) {
-		this(title, slots, Arrays.asList(items));
+	public Menu(OrionPlugin plugin, String title, int slots, MenuItem... items) {
+		this(plugin, title, slots, Arrays.asList(items));
 	}
 
 	public void addMenuItem(int slot, MenuItem item) {
 		this.items.add(item);
+		this.inventory.setMaxStackSize(430);
 		this.inventory.setItem(slot, item.getItem());
 		update();
 	}
@@ -58,6 +64,7 @@ public class Menu {
 
 	public void openMenu(Player player) {
 		player.openInventory(this.inventory);
+		this.plugin.getMenuListener().addMenu(this);
 	}
 
 	private void update() {

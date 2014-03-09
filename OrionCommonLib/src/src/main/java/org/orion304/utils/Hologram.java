@@ -13,17 +13,21 @@ import net.minecraft.server.v1_7_R1.PacketPlayOutSpawnEntityLiving;
 import net.minecraft.server.v1_7_R1.WorldServer;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_7_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
+
+import src.main.java.org.orion304.holographicmenu.HolographicMenuChoice;
 
 public class Hologram {
 	private static final double distance = 0.23;
 
-	private static List<Integer> showLine(Location loc, String text) {
+	private static List<Integer> showLine(Location loc, String text, Player p) {
 		WorldServer world = ((CraftWorld) loc.getWorld()).getHandle();
 		EntityWitherSkull skull = new EntityWitherSkull(world);
 		skull.setLocation(loc.getX(), loc.getY() + 1 + 55, loc.getZ(), 0, 0);
@@ -36,7 +40,13 @@ public class Hologram {
 		horse.setCustomNameVisible(true);
 		PacketPlayOutSpawnEntityLiving packedt = new PacketPlayOutSpawnEntityLiving(
 				horse);
-		for (Player player : loc.getWorld().getPlayers()) {
+		List<Player> players = new ArrayList<Player>();
+		if (p == null) {
+			players.addAll(loc.getWorld().getPlayers());
+		} else {
+			players.add(p);
+		}
+		for (Player player : players) {
 			EntityPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
 			nmsPlayer.playerConnection.sendPacket(packedt);
 
@@ -54,9 +64,23 @@ public class Hologram {
 	private Location location;
 	private final JavaPlugin plugin;
 
+	private Player player = null;
+
 	public Hologram(JavaPlugin plugin, String... lines) {
 		this.lines.addAll(Arrays.asList(lines));
 		this.plugin = plugin;
+	}
+
+	public void boldChoice(HolographicMenuChoice choice) {
+		int index = choice.getIndex();
+		for (int i = 0; i < this.lines.size(); i++) {
+			if (i == index) {
+				this.lines.set(index, ChatColor.BOLD + this.lines.get(index));
+			} else {
+				this.lines.set(i, ChatColor.stripColor(this.lines.get(i)));
+			}
+		}
+		change(this.lines.toArray(new String[this.lines.size()]));
 	}
 
 	public void change(String... lines) {
@@ -83,25 +107,36 @@ public class Hologram {
 					.sendPacket(packet);
 		}
 		this.showing = false;
-		this.location = null;
+	}
+
+	public HolographicMenuChoice getBestChoice(Location eyeLocation, Vector line) {
+		double bestDistance = Double.MAX_VALUE;
+		String bestString = null;
+		int bestIndex = -1;
+		Location bestLocation = null;
+		if (this.showing) {
+			Location first = this.location.clone().add(0,
+					(this.lines.size() / 2) * distance, 0);
+			double r;
+			for (int i = 0; i < this.lines.size(); i++) {
+				r = MathUtils.getDistanceFromLine(line, eyeLocation, first);
+				if (r < bestDistance) {
+					bestDistance = r;
+					bestString = this.lines.get(i);
+					bestIndex = i;
+					bestLocation = first.clone();
+				}
+				first.subtract(0, distance, 0);
+			}
+		} else {
+			return null;
+		}
+		return new HolographicMenuChoice(bestLocation, bestDistance,
+				bestString, this, bestIndex);
 	}
 
 	public void show(Location loc) {
-		if (this.showing == true) {
-			try {
-				throw new Exception("Is already showing!");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		Location first = loc.clone().add(0, (this.lines.size() / 2) * distance,
-				0);
-		for (int i = 0; i < this.lines.size(); i++) {
-			this.ids.addAll(showLine(first.clone(), this.lines.get(i)));
-			first.subtract(0, distance, 0);
-		}
-		this.showing = true;
-		this.location = loc;
+		show(loc, this.player);
 	}
 
 	public void show(Location loc, long ticks) {
@@ -112,6 +147,26 @@ public class Hologram {
 				destroy();
 			}
 		}.runTaskLater(this.plugin, ticks);
+	}
+
+	public void show(Location loc, Player player) {
+		ServerUtils.verbose(loc);
+		if (this.showing == true) {
+			try {
+				throw new Exception("Is already showing!");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		this.player = player;
+		Location first = loc.clone().add(0, (this.lines.size() / 2) * distance,
+				0);
+		for (int i = 0; i < this.lines.size(); i++) {
+			this.ids.addAll(showLine(first.clone(), this.lines.get(i), player));
+			first.subtract(0, distance, 0);
+		}
+		this.showing = true;
+		this.location = loc;
 	}
 
 }

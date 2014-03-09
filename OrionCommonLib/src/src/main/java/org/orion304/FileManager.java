@@ -12,7 +12,18 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public class FileManager {
 
 	private FileConfiguration config;
-	private File parent, file;
+	private final File parent, file;
+
+	/**
+	 * Creates a new FilerManager instance, which uses Bukkit FileConfiguration
+	 * to store properties.
+	 * 
+	 * @param file
+	 *            The file the properties are stored in.
+	 */
+	public FileManager(File file) {
+		this(file.getParentFile(), file.getName());
+	}
 
 	/**
 	 * Creates a new FileManager instance, which uses Bukkit FileConfiguration
@@ -24,9 +35,9 @@ public class FileManager {
 	 *            The filename for this configuration file.
 	 */
 	public FileManager(File path, String filename) {
-		parent = path;
+		this.parent = path;
 		checkParentExistence();
-		file = new File(path, filename);
+		this.file = new File(path, filename);
 		load();
 	}
 
@@ -34,8 +45,9 @@ public class FileManager {
 	 * Creates the parent directory, and its parents, if they do not exist.
 	 */
 	private void checkParentExistence() {
-		if (!parent.exists())
-			parent.mkdirs();
+		if (!this.parent.exists()) {
+			this.parent.mkdirs();
+		}
 	}
 
 	/**
@@ -46,7 +58,7 @@ public class FileManager {
 	 * @return Set of keys in the configuration file.
 	 */
 	public Set<String> getKeys(boolean deep) {
-		return config.getKeys(deep);
+		return this.config.getKeys(deep);
 	}
 
 	/**
@@ -56,16 +68,16 @@ public class FileManager {
 	 */
 	public void load() {
 		checkParentExistence();
-		if (file.exists()) {
+		if (this.file.exists()) {
 			try {
-				config.load(file);
+				this.config.load(this.file);
 			} catch (IOException | InvalidConfigurationException e) {
 				e.printStackTrace();
 			}
 		} else {
 			try {
-				file.createNewFile();
-				config = new YamlConfiguration();
+				this.file.createNewFile();
+				this.config = new YamlConfiguration();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -80,7 +92,7 @@ public class FileManager {
 	 * @return The object, its default, or null if no default was specified.
 	 */
 	public Object loadProperty(String key) {
-		return config.get(key);
+		return this.config.get(key);
 	}
 
 	/**
@@ -97,9 +109,10 @@ public class FileManager {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T loadProperty(String key, T defaultObject) {
-		Object object = config.get(key, defaultObject);
-		if (defaultObject.getClass().isInstance(object))
+		Object object = this.config.get(key, defaultObject);
+		if (defaultObject.getClass().isInstance(object)) {
 			return (T) object;
+		}
 		return null;
 	}
 
@@ -110,7 +123,7 @@ public class FileManager {
 	public void save() {
 		checkParentExistence();
 		try {
-			config.save(file);
+			this.config.save(this.file);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -124,7 +137,7 @@ public class FileManager {
 	 *            the configuration. The objects must be serializable.
 	 */
 	public void setDefaults(Map<String, Object> defaults) {
-		config.addDefaults(defaults);
+		this.config.addDefaults(defaults);
 		save();
 	}
 
@@ -137,7 +150,7 @@ public class FileManager {
 	 *            The object to set the key to. Must be serializable.
 	 */
 	public void setProperty(String key, Object property) {
-		config.set(key, property);
+		this.config.set(key, property);
 		save();
 	}
 }

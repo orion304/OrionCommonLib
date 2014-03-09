@@ -44,10 +44,10 @@ public class SQLHandler {
 	 * 
 	 * @return true, if successful
 	 */
-	protected boolean connect() {
+	public boolean connect() {
 		if (this.connection != null) {
 			try {
-				if (this.connection.isValid(1)) {
+				if (this.connection.isValid(5)) {
 					return true;
 				}
 			} catch (final SQLException e) {
