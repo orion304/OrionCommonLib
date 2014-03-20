@@ -1,5 +1,6 @@
 package src.main.java.org.orion304.player;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CustomPlayerHandler<T extends CustomPlayer> {
@@ -36,6 +37,15 @@ public class CustomPlayerHandler<T extends CustomPlayer> {
 			return this.players.get(playerName);
 		}
 		return newCustomPlayer(playerName);
+	}
+
+	/**
+	 * Returns a collection of all custom players in memory.
+	 * 
+	 * @return The collection of all custom players in memory.
+	 */
+	public Collection<T> getCustomPlayers() {
+		return this.players.values();
 	}
 
 	/**
