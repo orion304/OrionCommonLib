@@ -1,11 +1,14 @@
 package src.main.java.org.orion304.player;
 
+import java.util.UUID;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 public class CustomPlayerListener implements Listener {
@@ -26,15 +29,19 @@ public class CustomPlayerListener implements Listener {
 	}
 
 	/**
-	 * Clears the reference to a player in the CustomPlayer object after the
-	 * player dies.
+	 * Handles the player XP change event to keep XP consistent through
+	 * countdowns.
 	 * 
 	 * @param event
-	 *            The death event.
+	 *            The XP change event.
 	 */
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onPlayerDeath(PlayerDeathEvent event) {
-		removePlayer(event.getEntity());
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+	public void onPlayerExpChange(PlayerExpChangeEvent event) {
+		Player player = event.getPlayer();
+		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		if (customPlayer.addExp(event.getAmount())) {
+			event.setAmount(0);
+		}
 	}
 
 	/**
@@ -47,6 +54,19 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		setNewPlayer(event.getPlayer());
+	}
+
+	/**
+	 * Removes the player from memory when they quit, so that the handler only
+	 * contains players who are online.
+	 * 
+	 * @param event
+	 *            The player quit event.
+	 */
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onPlayerQuit(PlayerQuitEvent event) {
+		Player player = event.getPlayer();
+		removePlayer(player);
 	}
 
 	/**
@@ -69,9 +89,8 @@ public class CustomPlayerListener implements Listener {
 	 *            The Player to remove.
 	 */
 	private void removePlayer(Player player) {
-		String name = player.getName();
-		CustomPlayer customPlayer = this.handler.getCustomPlayer(name);
-		customPlayer.setPlayer(null);
+		UUID playerUUID = player.getUniqueId();
+		this.handler.removeCustomPlayer(playerUUID);
 	}
 
 	/**
@@ -82,8 +101,8 @@ public class CustomPlayerListener implements Listener {
 	 *            The Player to set.
 	 */
 	private void setNewPlayer(Player player) {
-		String name = player.getName();
-		CustomPlayer customPlayer = this.handler.getCustomPlayer(name);
+		UUID playerUUID = player.getUniqueId();
+		CustomPlayer customPlayer = this.handler.getCustomPlayer(playerUUID);
 		customPlayer.setPlayer(player);
 	}
 

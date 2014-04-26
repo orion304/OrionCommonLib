@@ -223,7 +223,8 @@ public class EnvironmentUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends Entity> Set<T> getEntitiesAroundPoint(
-			Location location, double radius, Class<T> c, Collection<T> avoid) {
+			Location location, double radius, Class<T> c,
+			Collection<? extends T> avoid) {
 		World world = location.getWorld();
 		List<Entity> entityList = world.getEntities();
 		Set<T> entities = new HashSet<>();
@@ -253,7 +254,7 @@ public class EnvironmentUtils {
 	 *         excluding those listed in avoid.
 	 */
 	public static Set<Entity> getEntitiesAroundPoint(Location location,
-			double radius, Collection<Entity> avoid) {
+			double radius, Collection<? extends Entity> avoid) {
 		return getEntitiesAroundPoint(location, radius, Entity.class, avoid);
 	}
 

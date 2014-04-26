@@ -68,7 +68,9 @@ public class SQLHandler {
 	}
 
 	public ResultSet get(PreparedStatement statement) throws SQLException {
+
 		return statement.executeQuery();
+
 	}
 
 	public ResultSet get(String statement) throws SQLException {
@@ -76,11 +78,15 @@ public class SQLHandler {
 	}
 
 	public PreparedStatement getStatement(String string) throws SQLException {
+
 		return this.connection.prepareStatement(string);
+
 	}
 
 	public int update(PreparedStatement statement) throws SQLException {
+
 		return statement.executeUpdate();
+
 	}
 
 	public int update(String statement) throws SQLException {

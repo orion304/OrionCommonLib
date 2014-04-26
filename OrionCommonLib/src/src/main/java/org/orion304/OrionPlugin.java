@@ -8,6 +8,8 @@ import org.bukkit.scheduler.BukkitScheduler;
 import src.main.java.org.orion304.holographicmenu.HolographicMenuListener;
 import src.main.java.org.orion304.holographicmenu.HolographicMenuSelectThread;
 import src.main.java.org.orion304.menu.MenuListener;
+import src.main.java.org.orion304.player.CustomPlayer;
+import src.main.java.org.orion304.player.CustomPlayerHandler;
 
 public abstract class OrionPlugin extends JavaPlugin {
 
@@ -18,11 +20,27 @@ public abstract class OrionPlugin extends JavaPlugin {
 	public HolographicMenuListener holographicMenuListener;
 	public MenuListener menuListener;
 
-	public void disable() {
+	abstract public void disable();
+
+	abstract public void enable();
+
+	public abstract CustomPlayerHandler<? extends CustomPlayer> getCustomPlayerHandler();
+
+	public HolographicMenuListener getHolographicMenuListener() {
+		return this.holographicMenuListener;
+	}
+
+	public MenuListener getMenuListener() {
+		return this.menuListener;
+	}
+
+	@Override
+	public void onDisable() {
 		this.scheduler.cancelTasks(this);
 	}
 
-	public void enable() {
+	@Override
+	public void onEnable() {
 		this.server = getServer();
 		this.scheduler = this.server.getScheduler();
 		this.manager = this.server.getPluginManager();
@@ -36,14 +54,7 @@ public abstract class OrionPlugin extends JavaPlugin {
 
 		this.manager.registerEvents(this.holographicMenuListener, this);
 		this.manager.registerEvents(this.menuListener, this);
-	}
-
-	public HolographicMenuListener getHolographicMenuListener() {
-		return this.holographicMenuListener;
-	}
-
-	public MenuListener getMenuListener() {
-		return this.menuListener;
+		enable();
 	}
 
 }

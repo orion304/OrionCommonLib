@@ -57,23 +57,55 @@ public class RelationshipUtils {
 	 *            The max range of the targeting.
 	 * @param c
 	 *            The class of entity that is being targeted.
-	 * @param avoid
-	 *            A collection of entities which will not be included in the
-	 *            targeting.
 	 * @return The targeted entity, of class c, that is not in avoid.
 	 */
 	public static <T extends Entity> T getTargetedEntity(LivingEntity entity,
-			double range, Class<T> c, Collection<T> avoid) {
+			double range, Class<T> c) {
+		return getTargetedEntity(entity, range, c, null);
+	}
+
+	public static <T extends Entity> T getTargetedEntity(LivingEntity entity,
+			double range, Class<T> c, Collection<? extends T> avoid) {
+		return getTargetedEntity(entity, range, c, avoid, false);
+	}
+
+	/**
+	 * Gets the entity, of class c, that is being targeted by the Living Entity,
+	 * excluding entities in avoid. Optionally targets people hidden from the
+	 * player.
+	 * 
+	 * @param entity
+	 *            The entity doing the targeting.
+	 * @param range
+	 *            The max range of the targeting.
+	 * @param c
+	 *            The class of entity that is being targeted.
+	 * @param avoid
+	 *            A collection of entities which will not be included in the
+	 *            targeting.
+	 * @param targetHidden
+	 *            If true, will also target players hidden via .hide(Player).
+	 * @return The targeted entity, of class c, that is not in avoid.
+	 */
+	public static <T extends Entity> T getTargetedEntity(LivingEntity entity,
+			double range, Class<T> c, Collection<? extends T> avoid,
+			boolean targetHidden) {
 		Location eyeLocation = entity.getEyeLocation();
 		Vector direction = eyeLocation.getDirection();
-		Set<T> candidates = EnvironmentUtils.getEntitiesAroundPoint(
-				eyeLocation, range, c, avoid);
+		Set<T> candidates;
+		if (avoid == null) {
+			candidates = EnvironmentUtils.getEntitiesAroundPoint(eyeLocation,
+					range, c);
+		} else {
+			candidates = EnvironmentUtils.getEntitiesAroundPoint(eyeLocation,
+					range, c, avoid);
+		}
 		T result = null;
 		double distance, bestdistance = Double.MAX_VALUE;
 		for (T target : candidates) {
 			Location loc = target.getLocation();
 			if (entity instanceof Player && target instanceof Player) {
-				if (!((Player) entity).canSee((Player) target)) {
+				if (!targetHidden && !((Player) entity).canSee((Player) target)) {
 					continue;
 				}
 			}
@@ -165,17 +197,31 @@ public class RelationshipUtils {
 	 * @param entity1
 	 *            The entity to check if they are facing entity2.
 	 * @param entity2
-	 *            THe entity whose position is checked against entity1's facing
+	 *            The entity whose position is checked against entity1's facing
 	 *            direction.
 	 * @return True if entity1 is looking at entity2 (in other words, entity2 is
 	 *         in front of entity1), false otherwise.
 	 */
 	public static boolean isInFrontOf(LivingEntity entity1, Entity entity2) {
-		Location eyeLocation = entity1.getEyeLocation();
+		return isInFrontOf(entity1, entity2.getLocation());
+	}
+
+	/**
+	 * Checks if the location is in front of the entity (i.e. the entity is
+	 * looking in that direction).
+	 * 
+	 * @param entity
+	 *            The entity looking.
+	 * @param location
+	 *            The location to check.
+	 * @return True if the entity is looking in the general direction of
+	 *         location.
+	 */
+	public static boolean isInFrontOf(LivingEntity entity, Location location) {
+		Location eyeLocation = entity.getEyeLocation();
 		Vector direction = eyeLocation.getDirection();
 
-		Vector distance = entity2.getLocation().toVector()
-				.subtract(eyeLocation.toVector());
+		Vector distance = location.toVector().subtract(eyeLocation.toVector());
 
 		return direction.dot(distance) > 0;
 	}

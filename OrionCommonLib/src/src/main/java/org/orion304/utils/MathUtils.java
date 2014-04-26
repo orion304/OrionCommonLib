@@ -5,11 +5,25 @@ import java.util.Random;
 
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
 public class MathUtils {
 
 	private static final Random random = new Random();
+
+	/**
+	 * Converts a double into a byte representing a fixed point value.
+	 * 
+	 * @param d
+	 *            The double.
+	 * @return The fixed point byte.
+	 */
+	public static byte doubleToFixedPointByte(double d) {
+		int ONE = 1 << 5;
+		return (byte) (d * ONE);
+	}
 
 	/**
 	 * Returns the cardinal direction (in the form of a BlockFace) that the
@@ -79,6 +93,62 @@ public class MathUtils {
 		AP.setZ(Pz - Az);
 
 		return (AP.crossProduct(line).length()) / (line.length());
+	}
+
+	/**
+	 * Gets the distance of the point to a line specified by the entity's line
+	 * of sight.
+	 * 
+	 * @param entity
+	 *            The entity looking.
+	 * @param point
+	 *            The point.
+	 * @return The distance from the point to the entity's line of sight.
+	 */
+	public static double getDistanceFromLineOfSight(LivingEntity entity,
+			Location point) {
+		return getDistanceFromLine(entity.getEyeLocation().getDirection(),
+				entity.getEyeLocation(), point);
+	}
+
+	/**
+	 * Returns the distance vector, pointing from location to destination.
+	 * 
+	 * @param location
+	 *            The base of the vector.
+	 * @param destination
+	 *            The head of the vector.
+	 * @return The distance vector created by the two locations.
+	 */
+	public static Vector getDistanceVector(Entity location, Entity destination) {
+		return getDistanceVector(location.getLocation(),
+				destination.getLocation());
+	}
+
+	/**
+	 * Returns the distance vector, pointing from location to destination.
+	 * 
+	 * @param location
+	 *            The base of the vector.
+	 * @param destination
+	 *            The head of the vector.
+	 * @return The distance vector created by the two locations.
+	 */
+	public static Vector getDistanceVector(Entity location, Location destination) {
+		return getDistanceVector(location.getLocation(), destination);
+	}
+
+	/**
+	 * Returns the distance vector, pointing from location to destination.
+	 * 
+	 * @param location
+	 *            The base of the vector.
+	 * @param destination
+	 *            The head of the vector.
+	 * @return The distance vector created by the two locations.
+	 */
+	public static Vector getDistanceVector(Location location, Entity destination) {
+		return getDistanceVector(location, destination.getLocation());
 	}
 
 	/**
@@ -194,7 +264,12 @@ public class MathUtils {
 	public static Vector getOrthogonalVector(Vector axis, double degrees,
 			double length) {
 
-		Vector ortho = new Vector(axis.getY(), -axis.getX(), 0);
+		Vector ortho;
+		if (axis.getX() == 0 && axis.getY() == 0) {
+			ortho = new Vector(1, 0, 0);
+		} else {
+			ortho = new Vector(axis.getY(), -axis.getX(), 0);
+		}
 		ortho = ortho.normalize();
 		ortho = ortho.multiply(length);
 

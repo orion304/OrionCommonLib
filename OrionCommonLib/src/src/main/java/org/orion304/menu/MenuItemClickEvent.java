@@ -1,6 +1,6 @@
 package src.main.java.org.orion304.menu;
 
-import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
@@ -13,12 +13,12 @@ public class MenuItemClickEvent extends Event {
 
 	private final int slot;
 	private final Menu menu;
-	private final HumanEntity entity;
+	private final Player player;
 
-	public MenuItemClickEvent(int slot, Menu menu, HumanEntity entity) {
+	public MenuItemClickEvent(int slot, Menu menu, Player player) {
 		this.slot = slot;
 		this.menu = menu;
-		this.entity = entity;
+		this.player = player;
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class MenuItemClickEvent extends Event {
 		return this.slot;
 	}
 
-	public HumanEntity getWhoClicked() {
-		return this.entity;
+	public Player getWhoClicked() {
+		return this.player;
 	}
 }

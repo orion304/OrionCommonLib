@@ -17,7 +17,7 @@ public class Menu {
 
 	private final List<MenuItem> items = new ArrayList<>();
 
-	private final Inventory inventory;
+	private Inventory inventory;
 	private final OrionPlugin plugin;
 
 	public Menu(OrionPlugin plugin, String title, int slots) {
@@ -63,7 +63,9 @@ public class Menu {
 	}
 
 	public void openMenu(Player player) {
-		player.openInventory(this.inventory);
+		player.closeInventory();
+		this.inventory = (player.openInventory(this.inventory))
+				.getTopInventory();
 		this.plugin.getMenuListener().addMenu(this);
 	}
 

@@ -4,20 +4,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import net.minecraft.server.v1_7_R1.EntityHorse;
-import net.minecraft.server.v1_7_R1.EntityPlayer;
-import net.minecraft.server.v1_7_R1.EntityWitherSkull;
-import net.minecraft.server.v1_7_R1.PacketPlayOutAttachEntity;
-import net.minecraft.server.v1_7_R1.PacketPlayOutEntityDestroy;
-import net.minecraft.server.v1_7_R1.PacketPlayOutSpawnEntity;
-import net.minecraft.server.v1_7_R1.PacketPlayOutSpawnEntityLiving;
-import net.minecraft.server.v1_7_R1.WorldServer;
+import net.minecraft.server.v1_7_R3.EntityHorse;
+import net.minecraft.server.v1_7_R3.EntityPlayer;
+import net.minecraft.server.v1_7_R3.EntityWitherSkull;
+import net.minecraft.server.v1_7_R3.PacketPlayOutAttachEntity;
+import net.minecraft.server.v1_7_R3.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_7_R3.PacketPlayOutSpawnEntity;
+import net.minecraft.server.v1_7_R3.PacketPlayOutSpawnEntityLiving;
+import net.minecraft.server.v1_7_R3.WorldServer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_7_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -105,7 +105,6 @@ public class Hologram {
 			if (justify == Justification.LEFT) {
 				format += "-";
 			}
-			ServerUtils.verbose("Here: " + maxsize);
 			for (int i = 0; i < lines.length; i++) {
 				String line = lines[i];
 				double chars = line.replaceAll(" ", "").length();

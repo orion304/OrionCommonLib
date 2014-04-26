@@ -1,10 +1,10 @@
 package src.main.java.org.orion304;
 
-import net.minecraft.server.v1_7_R1.EnumClientCommand;
-import net.minecraft.server.v1_7_R1.PacketPlayInClientCommand;
+import net.minecraft.server.v1_7_R3.EnumClientCommand;
+import net.minecraft.server.v1_7_R3.PacketPlayInClientCommand;
 
 import org.bukkit.GameMode;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -48,7 +48,7 @@ public class CommonListener implements Listener {
 
 	@EventHandler
 	public void onBlockFade(BlockFadeEvent event) {
-		event.setCancelled(true);
+		// event.setCancelled(true);
 	}
 
 	@EventHandler
@@ -58,9 +58,11 @@ public class CommonListener implements Listener {
 
 	@EventHandler
 	public void onBlockIgnite(BlockIgniteEvent event) {
-		if (event.getCause() == IgniteCause.LIGHTNING) {
+		if (event.getCause() == IgniteCause.LIGHTNING
+				|| event.getCause() == IgniteCause.SPREAD) {
 			event.setCancelled(true);
 		}
+
 	}
 
 	@EventHandler
