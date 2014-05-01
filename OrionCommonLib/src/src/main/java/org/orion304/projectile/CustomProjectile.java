@@ -7,9 +7,9 @@ import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
+import src.main.java.org.orion304.OrionPlugin;
 import src.main.java.org.orion304.utils.EnvironmentUtils;
 
 public abstract class CustomProjectile implements Runnable {
@@ -30,7 +30,7 @@ public abstract class CustomProjectile implements Runnable {
 	// projectiles.removeAll(toRemove);
 	// }
 
-	private final Plugin plugin;
+	protected final OrionPlugin plugin;
 	protected final Location location;
 	protected final Vector velocity;
 	private final LivingEntity shooter;
@@ -38,14 +38,14 @@ public abstract class CustomProjectile implements Runnable {
 	private boolean isAlive = true;
 	private final int taskId;
 
-	public CustomProjectile(Plugin plugin, Location location, Vector velocity,
-			LivingEntity shooter) {
+	public CustomProjectile(OrionPlugin plugin, Location location,
+			Vector velocity, LivingEntity shooter) {
 		this(plugin, location, velocity, shooter, true, true, true);
 	}
 
-	public CustomProjectile(Plugin plugin, Location location, Vector velocity,
-			LivingEntity shooter, boolean hasGravity, boolean hitsBlocks,
-			boolean hitsEntities) {
+	public CustomProjectile(OrionPlugin plugin, Location location,
+			Vector velocity, LivingEntity shooter, boolean hasGravity,
+			boolean hitsBlocks, boolean hitsEntities) {
 		this.plugin = plugin;
 		this.location = location;
 		this.velocity = velocity;

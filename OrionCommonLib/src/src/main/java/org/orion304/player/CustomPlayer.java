@@ -1,9 +1,14 @@
 package src.main.java.org.orion304.player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import net.minecraft.server.v1_7_R3.Packet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -28,6 +33,11 @@ public abstract class CustomPlayer {
 	protected boolean hasVoted = false;
 	protected int timesVoted = 0;
 	private final List<Countdown> countdowns = new ArrayList<>();
+	final List<Packet> packets = new ArrayList<>();
+	final ConcurrentHashMap<Long, List<Packet>> futurePackets = new ConcurrentHashMap<>();
+	long tick = 0;
+
+	private int packetHandlerTaskId = -1;
 
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR. It is for one extremely specific use in the
@@ -113,6 +123,12 @@ public abstract class CustomPlayer {
 		}
 	}
 
+	private void addPacket(Collection<? extends Packet> packets) {
+		synchronized (this.packets) {
+			this.packets.addAll(packets);
+		}
+	}
+
 	/**
 	 * Checks if the player *can* vote.
 	 * 
@@ -133,6 +149,17 @@ public abstract class CustomPlayer {
 		inventory.clear();
 		inventory.setArmorContents(null);
 	}
+
+	void clearPackets() {
+		synchronized (this.packets) {
+			this.packets.clear();
+		}
+	}
+
+	/**
+	 * Method called when the player leaves.
+	 */
+	abstract public void destroy();
 
 	@Override
 	public boolean equals(Object obj) {
@@ -165,6 +192,15 @@ public abstract class CustomPlayer {
 	 */
 	public Player getPlayer() {
 		return this.player;
+	}
+
+	/**
+	 * Gets the UUID associated with this player.
+	 * 
+	 * @return The UUID of the player.
+	 */
+	public UUID getUUID() {
+		return this.playerUUID;
 	}
 
 	/**
@@ -208,6 +244,11 @@ public abstract class CustomPlayer {
 		this.playerUUID = playerUUID;
 		resetPlayer();
 		initialize();
+		this.packetHandlerTaskId = Bukkit
+				.getScheduler()
+				.runTaskTimerAsynchronously(plugin,
+						new CustomPlayerPacketManager(this), 1L, 1L)
+				.getTaskId();
 	}
 
 	/**
@@ -227,6 +268,16 @@ public abstract class CustomPlayer {
 	abstract protected int maxVotes();
 
 	/**
+	 * Method called when the player leaves.
+	 */
+	void remove() {
+		destroy();
+		if (this.packetHandlerTaskId != -1) {
+			Bukkit.getScheduler().cancelTask(this.packetHandlerTaskId);
+		}
+	}
+
+	/**
 	 * Refreshes the Player object attached to this CustomPlayer by having
 	 * Bukkit fetch the online player.
 	 */
@@ -235,6 +286,7 @@ public abstract class CustomPlayer {
 	}
 
 	void run() {
+		this.tick++;
 		if (!this.countdowns.isEmpty()) {
 			Countdown countdown = this.countdowns.get(0);
 			countdown.run();
@@ -258,6 +310,58 @@ public abstract class CustomPlayer {
 	 */
 	public void sendMessage(String string) {
 		this.player.sendMessage(string);
+	}
+
+	/**
+	 * Sends a packet to this player.
+	 * 
+	 * @param packets
+	 *            The packets to send.
+	 */
+	public void sendPacket(Collection<? extends Packet> packets) {
+		sendPacket(0, packets);
+	}
+
+	/**
+	 * Sends a packet to this player.
+	 * 
+	 * @param packets
+	 *            The packets to send.
+	 */
+	public void sendPacket(int delay, Collection<? extends Packet> packets) {
+		if (delay == 0) {
+			addPacket(packets);
+		} else {
+			long t = this.tick + delay;
+			if (this.futurePackets.containsKey(t)) {
+				this.futurePackets.get(t).addAll(packets);
+			} else {
+				List<Packet> list = new ArrayList<>();
+				list.addAll(packets);
+				this.futurePackets.put(t, list);
+			}
+		}
+
+	}
+
+	/**
+	 * Sends a packet to this player.
+	 * 
+	 * @param packets
+	 *            The packets to send.
+	 */
+	public void sendPacket(int delay, Packet... packets) {
+		sendPacket(delay, Arrays.asList(packets));
+	}
+
+	/**
+	 * Sends a packet to this player.
+	 * 
+	 * @param packets
+	 *            The packets to send.
+	 */
+	public void sendPacket(Packet... packets) {
+		sendPacket(Arrays.asList(packets));
 	}
 
 	/**

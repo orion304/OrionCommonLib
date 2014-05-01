@@ -142,7 +142,10 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 	 */
 	public void removeCustomPlayer(UUID playerUUID) {
 		if (this.players.containsKey(playerUUID)) {
-			this.players.get(playerUUID).save();
+			CustomPlayer player = this.players.get(playerUUID);
+			player.save();
+			player.remove();
+			player.setPlayer(null);
 			this.players.remove(playerUUID);
 		}
 	}

@@ -454,10 +454,12 @@ public abstract class MinigameThread implements Runnable {
 	 */
 	public void menuClick(Menu menu, int i, Player player) {
 		if (menu.equals(this.voteMenu)) {
-			ArenaLocation arena = this.arenas.get(i);
-			arena.voteFor();
-			player.closeInventory();
-			handleVote(player);
+			if (this.arenas.size() > i) {
+				ArenaLocation arena = this.arenas.get(i);
+				arena.voteFor();
+				player.closeInventory();
+				handleVote(player);
+			}
 		}
 	}
 
