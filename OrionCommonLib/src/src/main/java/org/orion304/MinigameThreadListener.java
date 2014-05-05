@@ -1,7 +1,10 @@
 package src.main.java.org.orion304;
 
+import java.io.File;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -10,7 +13,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import src.main.java.org.orion304.menu.Menu;
 import src.main.java.org.orion304.menu.MenuItemClickEvent;
@@ -59,16 +64,35 @@ public class MinigameThreadListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event) {
+
 		if (this.parent.state == GameState.OFF) {
-			int num = this.parent.playerThreshold
+			final int num = this.parent.playerThreshold
 					- Bukkit.getOnlinePlayers().length;
 			if (num > 0) {
-				Bukkit.getServer()
-						.broadcastMessage(
-								ChatColor.AQUA.toString()
-										+ num
-										+ " more players must join for the game to start.");
+				new BukkitRunnable() {
+
+					@Override
+					public void run() {
+						Bukkit.getServer().broadcastMessage(
+								ChatColor.GRAY + "The game will start once "
+										+ ChatColor.RED + ChatColor.UNDERLINE
+										+ num + ChatColor.GRAY.toString()
+										+ " more players join!");
+
+					}
+
+				}.runTaskLater(this.parent.plugin, 2L);
+
 			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onPlayerQuit(PlayerQuitEvent event) {
+		for (World w : this.parent.plugin.getServer().getWorlds()) {
+			String wname = w.getName();
+			new File(wname + "/players/" + event.getPlayer().getName() + ".dat")
+					.delete();
 		}
 	}
 

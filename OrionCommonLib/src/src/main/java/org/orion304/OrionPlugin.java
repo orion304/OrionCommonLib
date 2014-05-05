@@ -13,11 +13,18 @@ import src.main.java.org.orion304.player.CustomPlayerHandler;
 
 public abstract class OrionPlugin extends JavaPlugin {
 
+	private static OrionPlugin plugin;
+
+	public static OrionPlugin getPlugin() {
+		return plugin;
+	}
+
 	public Server server;
 	public BukkitScheduler scheduler;
-	public PluginManager manager;
 
+	public PluginManager manager;
 	public HolographicMenuListener holographicMenuListener;
+
 	public MenuListener menuListener;
 
 	abstract public void disable();
@@ -41,6 +48,7 @@ public abstract class OrionPlugin extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		plugin = this;
 		this.server = getServer();
 		this.scheduler = this.server.getScheduler();
 		this.manager = this.server.getPluginManager();

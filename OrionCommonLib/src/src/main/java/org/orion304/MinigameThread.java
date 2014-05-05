@@ -37,13 +37,13 @@ public abstract class MinigameThread implements Runnable {
 		voteItem.setItemMeta(voteMeta);
 
 		ItemMeta leaveMeta = leaveItem.getItemMeta();
-		leaveMeta.setDisplayName(ChatColor.RED + "Leave the server");
+		leaveMeta.setDisplayName(ChatColor.RED + "Return to lobby");
 		leaveItem.setItemMeta(leaveMeta);
 	}
 
 	protected GameState state = GameState.OFF;
 
-	private final OrionPlugin plugin;
+	final OrionPlugin plugin;
 	private final int numberOfPlayers;
 
 	final int playerThreshold;
@@ -400,6 +400,10 @@ public abstract class MinigameThread implements Runnable {
 			this.voteMenu.openMenu(player);
 			return true;
 		}
+		if (item.equals(leaveItem)) {
+			Bungee.disconnect(player);
+			return true;
+		}
 		return handleItemInteract(player, item);
 	}
 
@@ -432,8 +436,8 @@ public abstract class MinigameThread implements Runnable {
 	protected void installVotingArenas(List<? extends ArenaLocation> arenas) {
 		this.arenas.clear();
 		this.voteMenu = new Menu(this.plugin, "Vote For A Map", arenas.size());
-		int i = 0;
-		for (ArenaLocation arena : arenas) {
+		for (int i = 0; i < arenas.size(); i++) {
+			ArenaLocation arena = arenas.get(i);
 			MenuItem item = new MenuItem(arena.getDisplayName(),
 					Material.EMERALD, 1, arena.getLore());
 			this.voteMenu.addMenuItem(i, item);
