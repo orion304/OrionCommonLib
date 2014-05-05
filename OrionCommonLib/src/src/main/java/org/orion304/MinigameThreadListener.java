@@ -91,8 +91,8 @@ public class MinigameThreadListener implements Listener {
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		for (World w : this.parent.plugin.getServer().getWorlds()) {
 			String wname = w.getName();
-			new File(wname + "/players/" + event.getPlayer().getName() + ".dat")
-					.delete();
+			new File(wname + "/playerdata/" + event.getPlayer().getUniqueId()
+					+ ".dat").delete();
 		}
 	}
 
