@@ -39,21 +39,7 @@ public class CustomPlayerPacketManager implements Runnable {
 				return;
 			}
 			for (Packet packet : this.player.packets) {
-				this.conn.sendPacket(packet);
-				if (packet instanceof PacketPlayOutSpawnEntityLiving) {
-					try {
-						Field a = packet.getClass().getDeclaredField("a");
-						a.setAccessible(true);
-						String id = String.valueOf(a.getInt(packet));
-						a.setAccessible(false);
-						if (!this.player.knownEntities.contains(id)) {
-							this.player.knownEntities.add(id);
-						}
-					} catch (NoSuchFieldException | SecurityException
-							| IllegalArgumentException | IllegalAccessException e) {
-						e.printStackTrace();
-					}
-				} else if (packet instanceof PacketPlayOutEntityDestroy) {
+				if (packet instanceof PacketPlayOutEntityDestroy) {
 					try {
 						Field a = packet.getClass().getDeclaredField("a");
 						a.setAccessible(true);
@@ -64,6 +50,21 @@ public class CustomPlayerPacketManager implements Runnable {
 							if (this.player.knownEntities.contains(string)) {
 								this.player.knownEntities.remove(string);
 							}
+						}
+					} catch (NoSuchFieldException | SecurityException
+							| IllegalArgumentException | IllegalAccessException e) {
+						e.printStackTrace();
+					}
+				}
+				this.conn.sendPacket(packet);
+				if (packet instanceof PacketPlayOutSpawnEntityLiving) {
+					try {
+						Field a = packet.getClass().getDeclaredField("a");
+						a.setAccessible(true);
+						String id = String.valueOf(a.getInt(packet));
+						a.setAccessible(false);
+						if (!this.player.knownEntities.contains(id)) {
+							this.player.knownEntities.add(id);
 						}
 					} catch (NoSuchFieldException | SecurityException
 							| IllegalArgumentException | IllegalAccessException e) {
