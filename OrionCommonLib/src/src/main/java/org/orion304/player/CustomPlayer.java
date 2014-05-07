@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import net.minecraft.server.v1_7_R3.Packet;
 
@@ -38,6 +39,8 @@ public abstract class CustomPlayer {
 	long tick = 0;
 
 	private int packetHandlerTaskId = -1;
+
+	final CopyOnWriteArrayList<String> knownEntities = new CopyOnWriteArrayList<>();
 
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR. It is for one extremely specific use in the
@@ -258,6 +261,17 @@ public abstract class CustomPlayer {
 	 */
 	protected boolean isSpectating() {
 		return this.isSpectating;
+	}
+
+	/**
+	 * Checks if the CustomPlayer knows about an entity sent via packets.
+	 * 
+	 * @param id
+	 *            The entity to check for.
+	 * @return True if the CustomPlayer knows of that entity
+	 */
+	public boolean knowsAbout(int id) {
+		return this.knownEntities.contains(String.valueOf(id));
 	}
 
 	/**

@@ -6,6 +6,7 @@ import java.util.Collection;
 import net.minecraft.server.v1_7_R3.Packet;
 import net.minecraft.server.v1_7_R3.PacketPlayOutWorldParticles;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -48,8 +49,10 @@ public class CraftMethods {
 
 	public static void sendPacket(OrionPlugin plugin, World world,
 			Collection<? extends Packet> packets) {
-		for (Player player : world.getPlayers()) {
-			sendPacket(plugin, player, packets);
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			if (player.getWorld().equals(world)) {
+				sendPacket(plugin, player, packets);
+			}
 		}
 	}
 

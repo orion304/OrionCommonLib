@@ -13,6 +13,8 @@ import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -230,6 +232,14 @@ public class EnvironmentUtils {
 		Set<T> entities = new HashSet<>();
 		for (Entity entity : entityList) {
 			if (c.isInstance(entity)) {
+				if (LivingEntity.class.isAssignableFrom(c)
+						&& ((LivingEntity) entity).isDead()) {
+					continue;
+				}
+				if (Player.class.isAssignableFrom(c)
+						&& !((Player) entity).isOnline()) {
+					continue;
+				}
 				if (!avoid.contains(entity)) {
 					if (location.distance(entity.getLocation()) <= radius) {
 						entities.add((T) entity);
