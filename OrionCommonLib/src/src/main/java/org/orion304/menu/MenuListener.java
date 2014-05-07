@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.Inventory;
@@ -38,6 +39,9 @@ public class MenuListener implements Listener {
 		if (inventory == null) {
 			return;
 		}
+		if (event.getClickedInventory() == null) {
+			return;
+		}
 		for (Menu menu : this.menus) {
 			if (menu.getInventory().equals(inventory)) {
 				HumanEntity entity = event.getWhoClicked();
@@ -52,6 +56,27 @@ public class MenuListener implements Listener {
 				return;
 			}
 		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onInventoryClose(InventoryCloseEvent event) {
+		HumanEntity entity = event.getPlayer();
+		if (entity instanceof Player) {
+			Player player = (Player) entity;
+			InventoryView view = event.getView();
+			Inventory inventory = view.getTopInventory();
+			if (inventory == null) {
+				return;
+			}
+			for (Menu menu : this.menus) {
+				if (menu.getInventory().equals(inventory)) {
+					MenuCloseEvent menuEvent = new MenuCloseEvent(menu, player);
+					Bukkit.getPluginManager().callEvent(menuEvent);
+					return;
+				}
+			}
+		}
+
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

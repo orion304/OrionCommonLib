@@ -1,5 +1,7 @@
 package src.main.java.org.orion304.player;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -7,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import net.minecraft.server.v1_7_R3.Packet;
 
@@ -40,7 +41,9 @@ public abstract class CustomPlayer {
 
 	private int packetHandlerTaskId = -1;
 
-	final CopyOnWriteArrayList<String> knownEntities = new CopyOnWriteArrayList<>();
+	final List<String> knownEntities = new ArrayList<>();
+	long noPacketTime = 0;
+	PrintWriter writer = null;
 
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR. It is for one extremely specific use in the
@@ -153,6 +156,12 @@ public abstract class CustomPlayer {
 		inventory.setArmorContents(null);
 	}
 
+	private void clearKnownEntities() {
+		synchronized (this.knownEntities) {
+			this.knownEntities.clear();
+		}
+	}
+
 	void clearPackets() {
 		synchronized (this.packets) {
 			this.packets.clear();
@@ -246,6 +255,15 @@ public abstract class CustomPlayer {
 	public void initialize(UUID playerUUID) {
 		this.playerUUID = playerUUID;
 		resetPlayer();
+		clearKnownEntities();
+		this.noPacketTime = System.currentTimeMillis();
+		if (this.player.getName().equalsIgnoreCase("orion304")) {
+			try {
+				this.writer = new PrintWriter("orion304.log");
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 		initialize();
 		this.packetHandlerTaskId = Bukkit
 				.getScheduler()
@@ -271,7 +289,10 @@ public abstract class CustomPlayer {
 	 * @return True if the CustomPlayer knows of that entity
 	 */
 	public boolean knowsAbout(int id) {
-		return this.knownEntities.contains(String.valueOf(id));
+		String value = String.valueOf(id);
+		synchronized (this.knownEntities) {
+			return this.knownEntities.contains(value);
+		}
 	}
 
 	/**
@@ -285,6 +306,10 @@ public abstract class CustomPlayer {
 	 * Method called when the player leaves.
 	 */
 	void remove() {
+		clearKnownEntities();
+		if (this.writer != null) {
+			this.writer.close();
+		}
 		destroy();
 		if (this.packetHandlerTaskId != -1) {
 			Bukkit.getScheduler().cancelTask(this.packetHandlerTaskId);

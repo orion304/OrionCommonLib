@@ -8,6 +8,14 @@ public class ServerUtils {
 
 	private static VerbosityLevel serverVerbosityLevel = VerbosityLevel.NONE;
 
+	public static String getString(Object... objects) {
+		StringBuilder builder = new StringBuilder();
+		for (Object object : objects) {
+			builder.append(object);
+		}
+		return builder.toString();
+	}
+
 	/**
 	 * Returns true if the player is null or if the player has the permission.
 	 * 

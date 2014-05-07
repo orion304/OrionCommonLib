@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -26,6 +28,19 @@ public class CustomPlayerListener implements Listener {
 	public CustomPlayerListener(
 			CustomPlayerHandler<? extends CustomPlayer> handler) {
 		this.handler = handler;
+	}
+
+	/**
+	 * Marks the player for no packet receiving for a brief time.
+	 * 
+	 * @param event
+	 *            The player death event.
+	 */
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onPlayerDeath(PlayerDeathEvent event) {
+		Player player = event.getEntity();
+		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		customPlayer.noPacketTime = System.currentTimeMillis();
 	}
 
 	/**
@@ -53,7 +68,10 @@ public class CustomPlayerListener implements Listener {
 	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		setNewPlayer(event.getPlayer());
+		Player player = event.getPlayer();
+		setNewPlayer(player);
+		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		customPlayer.noPacketTime = System.currentTimeMillis();
 	}
 
 	/**
@@ -79,6 +97,14 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		setNewPlayer(event.getPlayer());
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+	public void onPlayerWorldChange(PlayerChangedWorldEvent event) {
+		Player player = event.getPlayer();
+		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		customPlayer.knownEntities.clear();
+		customPlayer.noPacketTime = System.currentTimeMillis();
 	}
 
 	/**

@@ -79,7 +79,7 @@ public class HolographicMenu {
 
 	public void show() {
 		for (Location location : this.panes.keySet()) {
-			ServerUtils.verbose("Show at: " + location);
+			// ServerUtils.verbose("Show at: " + location);
 			Hologram hologram = this.panes.get(location);
 			hologram.show(location, this.player);
 		}

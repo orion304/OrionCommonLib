@@ -139,13 +139,13 @@ public class Hologram {
 	 */
 
 	public void boldChoice(HolographicMenuChoice choice) {
-		ServerUtils.verbose("Bolding");
+		// ServerUtils.verbose("Bolding");
 		for (int i = 0; i < this.lines.size(); i++) {
 			String line = this.lines.get(i);
 			line = line.replaceAll(ChatColor.BOLD.toString(), "");
 			if (choice.getIndex() == i) {
 				line = ChatColor.BOLD + line;
-				ServerUtils.verbose(line);
+				// ServerUtils.verbose(line);
 			}
 			this.lines.set(i, line);
 		}
