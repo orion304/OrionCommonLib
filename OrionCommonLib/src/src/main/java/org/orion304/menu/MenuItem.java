@@ -4,14 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-public class MenuItem {
+import src.main.java.org.orion304.utils.StringUtils;
 
-	private static final int maxStringSize = 40;
+public class MenuItem {
 
 	private final ItemStack item;
 
@@ -32,26 +31,8 @@ public class MenuItem {
 		ItemMeta meta = this.item.getItemMeta();
 		List<String> formattedLore = new ArrayList<>();
 		for (String string : lore) {
-			ChatColor color = ChatColor.getByChar(string.charAt(1));
-			String col = (color == null) ? "" : color.toString();
-			while (string.length() > maxStringSize) {
-				int i = maxStringSize - 1;
-				while (true) {
-					char c = string.charAt(i);
-					if (c == ' ') {
-						formattedLore.add(string.substring(0, i));
-						string = col + string.substring(i);
-						break;
-					} else if (i == 1) {
-						formattedLore.add(string.substring(0, 20));
-						string = col + " " + string.substring(20);
-						break;
-					} else {
-						i--;
-					}
-				}
-			}
-			formattedLore.add(string);
+			List<String> formattedString = StringUtils.wrapString(string);
+			formattedLore.addAll(formattedString);
 		}
 		meta.setLore(formattedLore);
 		this.item.setItemMeta(meta);

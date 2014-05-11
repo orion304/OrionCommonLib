@@ -46,7 +46,7 @@ public class MinigameThreadListener implements Listener {
 		this.parent.menuClick(menu, i, player);
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
 	public void onPlayerAnimation(PlayerAnimationEvent event) {
 		Player player = event.getPlayer();
 		ItemStack item = player.getItemInHand();
@@ -59,7 +59,7 @@ public class MinigameThreadListener implements Listener {
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
 		ItemStack item = event.getItem();
-		this.parent.handleInteract(player, item);
+		event.setCancelled(this.parent.handleInteract(player, item));
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

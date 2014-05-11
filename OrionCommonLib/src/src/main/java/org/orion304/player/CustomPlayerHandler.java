@@ -3,15 +3,19 @@ package src.main.java.org.orion304.player;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import src.main.java.org.orion304.Countdown;
 import src.main.java.org.orion304.OrionPlugin;
+import src.main.java.org.orion304.utils.Hologram;
 
 public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 
@@ -21,6 +25,8 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 	private final OrionPlugin plugin;
 
 	private final List<Countdown> globalCountdowns = new ArrayList<>();
+
+	private final Map<Hologram, Location> globalHolograms = new HashMap<>();
 
 	/**
 	 * Creates a CustomPlayerHandler object, parameterized by a class which
@@ -126,6 +132,10 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 				newCustomPlayer.addCountdown(countdown
 						.copy(newCustomPlayer.player));
 			}
+			for (Hologram hologram : this.globalHolograms.keySet()) {
+				Location location = this.globalHolograms.get(hologram);
+				newCustomPlayer.showHologram(hologram, location);
+			}
 			this.players.put(playerUUID, newCustomPlayer);
 			return newCustomPlayer;
 		} catch (InstantiationException | IllegalAccessException e) {
@@ -159,6 +169,13 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 		while (!this.globalCountdowns.isEmpty()
 				&& !this.globalCountdowns.get(0).isActive()) {
 			this.globalCountdowns.remove(0);
+		}
+	}
+
+	public void showHologram(Hologram hologram, Location location) {
+		this.globalHolograms.put(hologram, location);
+		for (CustomPlayer player : this.players.values()) {
+			player.showHologram(hologram, location);
 		}
 	}
 

@@ -39,7 +39,7 @@ public class MenuListener implements Listener {
 		if (inventory == null) {
 			return;
 		}
-		if (event.getClickedInventory() == null) {
+		if (event.getSlotType() == SlotType.OUTSIDE) {
 			return;
 		}
 		for (Menu menu : this.menus) {

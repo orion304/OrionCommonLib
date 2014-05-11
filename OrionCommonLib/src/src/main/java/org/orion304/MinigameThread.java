@@ -179,6 +179,8 @@ public abstract class MinigameThread implements Runnable {
 		this.arenas.clear();
 	}
 
+	abstract protected void complete();
+
 	/**
 	 * Called by this template when the game switches to the off state.
 	 */
@@ -366,7 +368,7 @@ public abstract class MinigameThread implements Runnable {
 	 * Called by this template to switch to the off state.
 	 */
 	public void gotoOff() {
-		this.state = GameState.OFF;
+		this.state = GameState.OVER;
 		end();
 		clearCurrentArena();
 	}
@@ -393,14 +395,11 @@ public abstract class MinigameThread implements Runnable {
 	 * @return True if the event needs to be cancelled.
 	 */
 	public boolean handleInteract(Player player, ItemStack item) {
-		if (item == null) {
-			return false;
-		}
-		if (item.equals(voteItem)) {
+		if (voteItem.equals(item)) {
 			this.voteMenu.openMenu(player);
 			return true;
 		}
-		if (item.equals(leaveItem)) {
+		if (leaveItem.equals(item)) {
 			Bungee.disconnect(player);
 			return true;
 		}
@@ -496,6 +495,9 @@ public abstract class MinigameThread implements Runnable {
 			celebrations();
 			fireworks();
 			checkForOffConditions();
+			break;
+		case OVER:
+			complete();
 			break;
 		}
 	}

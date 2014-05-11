@@ -97,6 +97,7 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		setNewPlayer(event.getPlayer());
+
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
@@ -105,6 +106,7 @@ public class CustomPlayerListener implements Listener {
 		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
 		customPlayer.knownEntities.clear();
 		customPlayer.noPacketTime = System.currentTimeMillis();
+		customPlayer.refreshHolograms();
 	}
 
 	/**
@@ -130,6 +132,7 @@ public class CustomPlayerListener implements Listener {
 		UUID playerUUID = player.getUniqueId();
 		CustomPlayer customPlayer = this.handler.getCustomPlayer(playerUUID);
 		customPlayer.setPlayer(player);
+		customPlayer.refreshHolograms();
 	}
 
 }
