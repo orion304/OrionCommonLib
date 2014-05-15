@@ -25,11 +25,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 
 import src.main.java.org.orion304.holographicmenu.HolographicMenuChoice;
 
-public class Hologram {
+public class HologramOld {
 	private static final double distance = 0.23;
 	private static final double offset = -1.4;
 
@@ -46,7 +45,8 @@ public class Hologram {
 	private final Justification justify;
 	private final List<Packet> packets = new ArrayList<>();
 
-	public Hologram(JavaPlugin plugin, Justification justify, String... lines) {
+	public HologramOld(JavaPlugin plugin, Justification justify,
+			String... lines) {
 		this.constructLines = lines;
 		this.justify = justify;
 		if (justify != Justification.NONE && lines.length != 0) {
@@ -85,11 +85,11 @@ public class Hologram {
 		this.plugin = plugin;
 	}
 
-	public Hologram(JavaPlugin plugin, Player chatter, String... lines) {
+	public HologramOld(JavaPlugin plugin, Player chatter, String... lines) {
 		this(plugin, lines);
 	}
 
-	public Hologram(JavaPlugin plugin, String... lines) {
+	public HologramOld(JavaPlugin plugin, String... lines) {
 		this(plugin, Justification.NONE, lines);
 	}
 
@@ -115,8 +115,8 @@ public class Hologram {
 	 */
 
 	@Override
-	public Hologram clone() {
-		return new Hologram(this.plugin, this.justify, this.constructLines);
+	public HologramOld clone() {
+		return new HologramOld(this.plugin, this.justify, this.constructLines);
 	}
 
 	public void destroy() {
@@ -169,27 +169,27 @@ public class Hologram {
 
 	}
 
-	public HolographicMenuChoice getBestChoice(Location point, Vector line) {
-		Location bestLocation = null, loc;
-		double bestDistance = Double.MAX_VALUE, dis;
-		String bestString = null;
-		int bestIndex = -1;
-		int size = this.lines.size();
-		double dy;
-		for (int i = 0; i < size; i++) {
-			dy = -offset + (size - 1 - i) * distance;
-			loc = this.location.clone().add(0, dy, 0);
-			dis = MathUtils.getDistanceFromLine(line, point, loc);
-			if (dis < bestDistance) {
-				bestDistance = dis;
-				bestIndex = i;
-				bestLocation = loc;
-				bestString = this.lines.get(i);
-			}
-		}
-		return new HolographicMenuChoice(bestLocation, bestDistance,
-				bestString, this, bestIndex);
-	}
+	// public HolographicMenuChoice getBestChoice(Location point, Vector line) {
+	// Location bestLocation = null, loc;
+	// double bestDistance = Double.MAX_VALUE, dis;
+	// String bestString = null;
+	// int bestIndex = -1;
+	// int size = this.lines.size();
+	// double dy;
+	// for (int i = 0; i < size; i++) {
+	// dy = -offset + (size - 1 - i) * distance;
+	// loc = this.location.clone().add(0, dy, 0);
+	// dis = MathUtils.getDistanceFromLine(line, point, loc);
+	// if (dis < bestDistance) {
+	// bestDistance = dis;
+	// bestIndex = i;
+	// bestLocation = loc;
+	// bestString = this.lines.get(i);
+	// }
+	// }
+	// return new HolographicMenuChoice(bestLocation, bestDistance,
+	// bestString, this, bestIndex);
+	// }
 
 	public boolean isShowing() {
 		return this.showing;
@@ -285,9 +285,9 @@ public class Hologram {
 							PacketPlayOutAttachEntity pa = new PacketPlayOutAttachEntity(
 									0, horse, skull);
 							nmsPlayer.playerConnection.sendPacket(pa);
-							Hologram.this.packets.add(packedt);
-							Hologram.this.packets.add(packet_skull);
-							Hologram.this.packets.add(pa);
+							HologramOld.this.packets.add(packedt);
+							HologramOld.this.packets.add(packet_skull);
+							HologramOld.this.packets.add(pa);
 						}
 					}
 				}, 4L);

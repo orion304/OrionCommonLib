@@ -6,23 +6,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.server.v1_7_R3.Packet;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import src.main.java.org.orion304.Countdown;
 import src.main.java.org.orion304.OrionPlugin;
-import src.main.java.org.orion304.utils.Hologram;
 
 public abstract class CustomPlayer {
 
@@ -42,7 +40,7 @@ public abstract class CustomPlayer {
 	private final List<Countdown> countdowns = new ArrayList<>();
 	final List<Packet> packets = new ArrayList<>();
 	final ConcurrentHashMap<Long, List<Packet>> futurePackets = new ConcurrentHashMap<>();
-	final Map<Hologram, Location> holograms = new HashMap<>();
+	final List<Hologram> holograms = new ArrayList<>();
 	long tick = 0;
 
 	private int packetHandlerTaskId = -1;
@@ -309,22 +307,8 @@ public abstract class CustomPlayer {
 	abstract protected int maxVotes();
 
 	void refreshHolograms() {
-		final Player p = this.player;
-		for (final Hologram hologram : this.holograms.keySet()) {
-			final Location location = this.holograms.get(hologram);
-			final Location playerLoc = this.player.getLocation();
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					if (location.getWorld() == playerLoc.getWorld()) {
-						if (hologram.isShowing()) {
-							hologram.reshow(p);
-						} else {
-							hologram.show(location, p);
-						}
-					}
-				}
-			}.runTaskLater(plugin, 2L);
+		for (Hologram hologram : this.holograms) {
+			hologram.show(this);
 		}
 	}
 
@@ -333,12 +317,22 @@ public abstract class CustomPlayer {
 	 */
 	void remove() {
 		clearKnownEntities();
+		for (Hologram hologram : this.holograms) {
+			hologram.clearPlayer(this);
+		}
 		if (this.writer != null) {
 			this.writer.close();
 		}
 		destroy();
 		if (this.packetHandlerTaskId != -1) {
 			Bukkit.getScheduler().cancelTask(this.packetHandlerTaskId);
+		}
+	}
+
+	public void removeHologram(Hologram hologram) {
+		if (this.holograms.contains(hologram)) {
+			this.holograms.remove(hologram);
+			hologram.destroy(this);
 		}
 	}
 
@@ -393,7 +387,17 @@ public abstract class CustomPlayer {
 	 * @param packets
 	 *            The packets to send.
 	 */
-	public void sendPacket(int delay, Collection<? extends Packet> packets) {
+	public void sendPacket(int delay, Packet... packets) {
+		sendPacket(delay, Arrays.asList(packets));
+	}
+
+	/**
+	 * Sends a packet to this player.
+	 * 
+	 * @param packets
+	 *            The packets to send.
+	 */
+	public void sendPacket(long delay, Collection<? extends Packet> packets) {
 		if (delay == 0) {
 			addPacket(packets);
 		} else {
@@ -407,16 +411,6 @@ public abstract class CustomPlayer {
 			}
 		}
 
-	}
-
-	/**
-	 * Sends a packet to this player.
-	 * 
-	 * @param packets
-	 *            The packets to send.
-	 */
-	public void sendPacket(int delay, Packet... packets) {
-		sendPacket(delay, Arrays.asList(packets));
 	}
 
 	/**
@@ -466,11 +460,33 @@ public abstract class CustomPlayer {
 	 * @param location
 	 *            The location of the hologram.
 	 */
-	public void showHologram(Hologram hologram, final Location location) {
-		final Hologram holo = hologram.clone();
-		this.holograms.put(holo, location);
+	public void showHologram(Hologram hologram) {
+		if (!this.holograms.contains(hologram)) {
+			this.holograms.add(hologram);
+		}
 		refreshHolograms();
+	}
 
+	/**
+	 * Shows a hologram to this player, and keeps track of it through world
+	 * changes and deaths.
+	 * 
+	 * @param hologram
+	 *            The hologram to show.
+	 * @param location
+	 *            The location of the hologram.
+	 */
+	public void showHologram(final Hologram hologram, long ticks) {
+		if (!this.holograms.contains(hologram)) {
+			this.holograms.add(hologram);
+		}
+		refreshHolograms();
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				removeHologram(hologram);
+			}
+		}.runTaskLater(plugin, ticks + 2L);
 	}
 
 	/**
@@ -482,6 +498,8 @@ public abstract class CustomPlayer {
 	 * Methods called when the player is to become a spectator.
 	 */
 	abstract protected void turnOnSpectating();
+
+	abstract public boolean useItem(int slot, ItemStack item, Action action);
 
 	/**
 	 * Method to register that the player has voted.

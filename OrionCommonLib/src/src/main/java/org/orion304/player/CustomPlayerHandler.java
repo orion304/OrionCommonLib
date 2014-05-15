@@ -3,19 +3,15 @@ package src.main.java.org.orion304.player;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import src.main.java.org.orion304.Countdown;
 import src.main.java.org.orion304.OrionPlugin;
-import src.main.java.org.orion304.utils.Hologram;
 
 public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 
@@ -26,7 +22,7 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 
 	private final List<Countdown> globalCountdowns = new ArrayList<>();
 
-	private final Map<Hologram, Location> globalHolograms = new HashMap<>();
+	private final List<Hologram> globalHolograms = new ArrayList<>();
 
 	/**
 	 * Creates a CustomPlayerHandler object, parameterized by a class which
@@ -85,6 +81,12 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 		}
 	}
 
+	public void destroyHologram(Hologram hologram) {
+		if (this.globalHolograms.contains(hologram)) {
+			hologram.destroy();
+		}
+	}
+
 	public T getCustomPlayer(Player player) {
 		return getCustomPlayer(player.getUniqueId());
 	}
@@ -132,9 +134,8 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 				newCustomPlayer.addCountdown(countdown
 						.copy(newCustomPlayer.player));
 			}
-			for (Hologram hologram : this.globalHolograms.keySet()) {
-				Location location = this.globalHolograms.get(hologram);
-				newCustomPlayer.showHologram(hologram, location);
+			for (Hologram hologram : this.globalHolograms) {
+				newCustomPlayer.showHologram(hologram);
 			}
 			this.players.put(playerUUID, newCustomPlayer);
 			return newCustomPlayer;
@@ -162,7 +163,7 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 
 	@Override
 	public void run() {
-		for (T player : this.players.values()) {
+		for (T player : getCustomPlayers()) {
 			player.run();
 		}
 
@@ -172,10 +173,10 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 		}
 	}
 
-	public void showHologram(Hologram hologram, Location location) {
-		this.globalHolograms.put(hologram, location);
-		for (CustomPlayer player : this.players.values()) {
-			player.showHologram(hologram, location);
+	public void showHologram(Hologram hologram) {
+		this.globalHolograms.add(hologram);
+		for (CustomPlayer player : getCustomPlayers()) {
+			hologram.show(player);
 		}
 	}
 

@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -59,6 +60,16 @@ public class CustomPlayerListener implements Listener {
 		}
 	}
 
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
+	public void onPlayerInteract(PlayerInteractEvent event) {
+		Player player = event.getPlayer();
+		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		if (customPlayer.useItem(player.getInventory().getHeldItemSlot(),
+				event.getItem(), event.getAction())) {
+			event.setCancelled(true);
+		}
+	}
+
 	/**
 	 * Sets the reference to a player in the CustomPlayer object when the player
 	 * joins the server.
@@ -97,7 +108,6 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		setNewPlayer(event.getPlayer());
-
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)

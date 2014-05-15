@@ -2,7 +2,7 @@ package src.main.java.org.orion304.holographicmenu;
 
 import org.bukkit.Location;
 
-import src.main.java.org.orion304.utils.Hologram;
+import src.main.java.org.orion304.player.Hologram;
 
 public class HolographicMenuChoice {
 

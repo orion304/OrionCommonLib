@@ -1,32 +1,35 @@
 package src.main.java.org.orion304.holographicmenu;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import src.main.java.org.orion304.OrionPlugin;
-import src.main.java.org.orion304.utils.Hologram;
+import src.main.java.org.orion304.player.CustomPlayer;
+import src.main.java.org.orion304.player.Hologram;
 import src.main.java.org.orion304.utils.ServerUtils;
 
 public class HolographicMenu {
 
 	private final OrionPlugin plugin;
+	private final CustomPlayer customPlayer;
 	private final Player player;
-	private final Map<Location, Hologram> panes = new HashMap<>();
+	private final List<Hologram> panes = new ArrayList<>();
 
 	private Location boldedLocation = null;
 
-	public HolographicMenu(OrionPlugin plugin, Player player) {
+	public HolographicMenu(OrionPlugin plugin, CustomPlayer customPlayer) {
 		this.plugin = plugin;
-		this.player = player;
+		this.customPlayer = customPlayer;
+		this.player = customPlayer.getPlayer();
 	}
 
 	public void addPane(Location location, String... strings) {
-		Hologram hologram = new Hologram(this.plugin, strings);
-		this.panes.put(location, hologram);
+		Hologram hologram = new Hologram(this.plugin, location, strings);
+		this.panes.add(hologram);
 	}
 
 	public void boldChoice() {
@@ -40,8 +43,7 @@ public class HolographicMenu {
 	}
 
 	public void destroy() {
-		for (Location location : this.panes.keySet()) {
-			Hologram hologram = this.panes.get(location);
+		for (Hologram hologram : this.panes) {
 			hologram.destroy();
 		}
 		this.plugin.getHolographicMenuListener().removeHolographicMenu(this);
@@ -57,8 +59,7 @@ public class HolographicMenu {
 		Location eyeLocation = this.player.getEyeLocation();
 		Vector line = eyeLocation.getDirection();
 
-		for (Location location : this.panes.keySet()) {
-			Hologram hologram = this.panes.get(location);
+		for (Hologram hologram : this.panes) {
 			HolographicMenuChoice choice = hologram.getBestChoice(eyeLocation,
 					line);
 			if (choice == null) {
@@ -78,10 +79,8 @@ public class HolographicMenu {
 	}
 
 	public void show() {
-		for (Location location : this.panes.keySet()) {
-			// ServerUtils.verbose("Show at: " + location);
-			Hologram hologram = this.panes.get(location);
-			hologram.show(location, this.player);
+		for (Hologram hologram : this.panes) {
+			this.customPlayer.showHologram(hologram);
 		}
 		this.plugin.getHolographicMenuListener().addHolographicMenu(this);
 		boldChoice();

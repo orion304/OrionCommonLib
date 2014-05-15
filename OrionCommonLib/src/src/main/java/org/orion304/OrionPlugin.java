@@ -6,7 +6,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import src.main.java.org.orion304.holographicmenu.HolographicMenuListener;
-import src.main.java.org.orion304.holographicmenu.HolographicMenuSelectThread;
 import src.main.java.org.orion304.menu.MenuListener;
 import src.main.java.org.orion304.player.CustomPlayer;
 import src.main.java.org.orion304.player.CustomPlayerHandler;
@@ -53,14 +52,14 @@ public abstract class OrionPlugin extends JavaPlugin {
 		this.scheduler = this.server.getScheduler();
 		this.manager = this.server.getPluginManager();
 
-		HolographicMenuSelectThread thread = new HolographicMenuSelectThread(
-				this);
-		this.scheduler.scheduleSyncRepeatingTask(this, thread, 0, 10);
+		// HolographicMenuSelectThread thread = new HolographicMenuSelectThread(
+		// this);
+		// this.scheduler.scheduleSyncRepeatingTask(this, thread, 0, 10);
 
 		this.menuListener = new MenuListener();
-		this.holographicMenuListener = new HolographicMenuListener();
+		// this.holographicMenuListener = new HolographicMenuListener();
 
-		this.manager.registerEvents(this.holographicMenuListener, this);
+		// this.manager.registerEvents(this.holographicMenuListener, this);
 		this.manager.registerEvents(this.menuListener, this);
 		enable();
 	}
