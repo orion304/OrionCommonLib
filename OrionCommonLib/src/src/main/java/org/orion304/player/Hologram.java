@@ -114,8 +114,8 @@ public class Hologram {
 			Packet packet = new PacketPlayOutEntityMetadata(horse.getId(),
 					horse.getDataWatcher(), true);
 			for (UUID id : this.showing.keySet()) {
-				CustomPlayer player = this.plugin.getCustomPlayerHandler()
-						.getCustomPlayer(id);
+				CustomPlayer<? extends OrionPlugin> player = this.plugin
+						.getCustomPlayerHandler().getCustomPlayer(id);
 				player.sendPacket(packet);
 			}
 		} else {
@@ -127,20 +127,20 @@ public class Hologram {
 		}
 	}
 
-	void clearPlayer(CustomPlayer player) {
+	void clearPlayer(CustomPlayer<? extends OrionPlugin> player) {
 		this.showing.remove(player.getUUID());
 	}
 
 	public void destroy() {
-		for (CustomPlayer player : this.plugin.getCustomPlayerHandler()
-				.getCustomPlayers()) {
+		for (CustomPlayer<? extends OrionPlugin> player : this.plugin
+				.getCustomPlayerHandler().getCustomPlayers()) {
 			destroy(player);
 		}
 
 		this.showing.clear();
 	}
 
-	void destroy(CustomPlayer player) {
+	void destroy(CustomPlayer<? extends OrionPlugin> player) {
 		UUID id = player.getUUID();
 		if (this.showing.get(id)) {
 			player.sendPacket(this.destroyPackets);
@@ -232,8 +232,8 @@ public class Hologram {
 
 			}
 			for (UUID id : this.showing.keySet()) {
-				CustomPlayer player = this.plugin.getCustomPlayerHandler()
-						.getCustomPlayer(id);
+				CustomPlayer<? extends OrionPlugin> player = this.plugin
+						.getCustomPlayerHandler().getCustomPlayer(id);
 				player.showHologram(this);
 				// player.sendPacket(packets);
 			}
@@ -275,7 +275,7 @@ public class Hologram {
 		}
 	}
 
-	void show(CustomPlayer player) {
+	void show(CustomPlayer<? extends OrionPlugin> player) {
 		if (this.location.getWorld().equals(player.getPlayer().getWorld())) {
 			player.sendPacket(this.showPackets);
 			this.showing.put(player.getUUID(), true);
@@ -284,7 +284,7 @@ public class Hologram {
 		}
 	}
 
-	void show(CustomPlayer player, long ticks) {
+	void show(CustomPlayer<? extends OrionPlugin> player, long ticks) {
 		show(player);
 		if (this.location.getWorld().equals(player.getPlayer().getWorld())) {
 			player.sendPacket(ticks, this.destroyPackets);

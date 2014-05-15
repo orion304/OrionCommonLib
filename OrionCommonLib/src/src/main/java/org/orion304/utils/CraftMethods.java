@@ -24,26 +24,27 @@ public class CraftMethods {
 				data, number);
 	}
 
-	public static void sendPacket(CustomPlayer player,
+	public static void sendPacket(CustomPlayer<? extends OrionPlugin> player,
 			Collection<? extends Packet> packets) {
 		player.sendPacket(packets);
 	}
 
-	public static void sendPacket(CustomPlayer player, Packet... packets) {
+	public static void sendPacket(CustomPlayer<? extends OrionPlugin> player,
+			Packet... packets) {
 		sendPacket(player, Arrays.asList(packets));
 	}
 
 	public static void sendPacket(OrionPlugin plugin, Player player,
 			Collection<? extends Packet> packets) {
-		CustomPlayer customPlayer = plugin.getCustomPlayerHandler()
-				.getCustomPlayer(player);
+		CustomPlayer<? extends OrionPlugin> customPlayer = plugin
+				.getCustomPlayerHandler().getCustomPlayer(player);
 		sendPacket(customPlayer, packets);
 	}
 
 	public static void sendPacket(OrionPlugin plugin, Player player,
 			Packet... packets) {
-		CustomPlayer customPlayer = plugin.getCustomPlayerHandler()
-				.getCustomPlayer(player);
+		CustomPlayer<? extends OrionPlugin> customPlayer = plugin
+				.getCustomPlayerHandler().getCustomPlayer(player);
 		sendPacket(customPlayer, packets);
 	}
 

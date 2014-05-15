@@ -15,17 +15,20 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 
+import src.main.java.org.orion304.OrionPlugin;
+
 public class SpectatorListener implements Listener {
 
-	private final CustomPlayerHandler<? extends CustomPlayer> handler;
+	private final CustomPlayerHandler<? extends OrionPlugin, ? extends CustomPlayer<? extends OrionPlugin>> handler;
 
-	public SpectatorListener(CustomPlayerHandler<? extends CustomPlayer> handler) {
+	public SpectatorListener(
+			CustomPlayerHandler<? extends OrionPlugin, ? extends CustomPlayer<? extends OrionPlugin>> handler) {
 		this.handler = handler;
 	}
 
 	private void block(Entity entity, Cancellable event) {
 		if (entity instanceof Player) {
-			CustomPlayer cPlayer = this.handler
+			CustomPlayer<? extends OrionPlugin> cPlayer = this.handler
 					.getCustomPlayer((Player) entity);
 			if (cPlayer.isSpectating()) {
 				event.setCancelled(true);

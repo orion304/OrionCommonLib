@@ -1,5 +1,6 @@
 package src.main.java.org.orion304.player;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -9,16 +10,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 import src.main.java.org.orion304.Countdown;
 import src.main.java.org.orion304.OrionPlugin;
 
-public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
+public class CustomPlayerHandler<U extends OrionPlugin, T extends CustomPlayer<U>>
+		implements Runnable {
 
 	private final ConcurrentHashMap<UUID, T> players = new ConcurrentHashMap<>();
 
 	private final Class<T> customPlayerClass;
-	private final OrionPlugin plugin;
+	private final U plugin;
 
 	private final List<Countdown> globalCountdowns = new ArrayList<>();
 
@@ -33,13 +36,12 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 	 * @param customPlayerClass
 	 *            The class of CustomPlayer for the whole system.
 	 */
-	public CustomPlayerHandler(OrionPlugin plugin, Class<T> customPlayerClass) {
+	public CustomPlayerHandler(U plugin, Class<T> customPlayerClass) {
 		this.plugin = plugin;
 		this.customPlayerClass = customPlayerClass;
-		T.setPlugin(plugin);
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			newCustomPlayer(player.getUniqueId());
+			reloadCustomPlayer(player);
 		}
 
 		CustomPlayerListener listener = new CustomPlayerListener(this);
@@ -93,18 +95,14 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 
 	/**
 	 * Returns the CustomPlayer specified by the type in the constructor, by the
-	 * playerUUID key. If that CustomPlayer didn't exist, it handles the
-	 * creation of a new one.
+	 * playerUUID key. If that CustomPlayer didn't exist, return null.
 	 * 
 	 * @param playerUUID
 	 *            The UUID of the CustomPlayer object.
 	 * @return The CustomPlayer.
 	 */
 	public T getCustomPlayer(UUID playerUUID) {
-		if (this.players.containsKey(playerUUID)) {
-			return this.players.get(playerUUID);
-		}
-		return newCustomPlayer(playerUUID);
+		return this.players.get(playerUUID);
 	}
 
 	/**
@@ -116,33 +114,57 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 		return this.players.values();
 	}
 
+	public U getPlugin() {
+		return this.plugin;
+	}
+
 	/**
-	 * This method handles all the weird things that need to be done to
-	 * instantiate a new generic type, and makes sure the object is properly
-	 * initialized. NOTE: Any subclasses of CustomPlayer *must* overload the
-	 * initialize() methods in order to function properly in this handler.
+	 * Creates a new CustomPlayer object for storage until the player logs in.
+	 * Calls .asyncPreLogin on that object.
 	 * 
-	 * @param playerName
-	 *            The name of the player to attach to the object.
+	 * @param event
+	 *            The AsyncPlayerPreLoginEvent associated with them trying to
+	 *            come online.
 	 * @return The new CustomPlayer.
 	 */
-	private T newCustomPlayer(UUID playerUUID) {
+	T newCustomPlayer(AsyncPlayerPreLoginEvent event) {
+		UUID id = event.getUniqueId();
+		T newCustomPlayer = newCustomPlayer(id);
+		newCustomPlayer.asyncPreLogin(event);
+		return newCustomPlayer;
+	}
+
+	/**
+	 * Creates a new CustomPlayer object with this ID.
+	 * 
+	 * @param id
+	 *            The UUID of the player
+	 * @return The new CustomPlayer object.
+	 */
+	private T newCustomPlayer(UUID id) {
 		try {
-			T newCustomPlayer = this.customPlayerClass.newInstance();
-			newCustomPlayer.initialize(playerUUID);
-			for (Countdown countdown : this.globalCountdowns) {
-				newCustomPlayer.addCountdown(countdown
-						.copy(newCustomPlayer.player));
-			}
-			for (Hologram hologram : this.globalHolograms) {
-				newCustomPlayer.showHologram(hologram);
-			}
-			this.players.put(playerUUID, newCustomPlayer);
+			Constructor<T> con = this.customPlayerClass.getConstructor(
+					UUID.class, getClass());
+			T newCustomPlayer = con.newInstance(id, this);
 			return newCustomPlayer;
-		} catch (InstantiationException | IllegalAccessException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * Used only in the case when the plugin is enabled while there are players
+	 * online (i.e. /reload). Handles those players.
+	 * 
+	 * @param player
+	 *            The player to reload.
+	 */
+	private void reloadCustomPlayer(Player player) {
+		AsyncPlayerPreLoginEvent event = new AsyncPlayerPreLoginEvent(
+				player.getName(), null, player.getUniqueId());
+		T customPlayer = newCustomPlayer(event);
+		setPlayerOnJoin(customPlayer, player);
 	}
 
 	/**
@@ -153,7 +175,7 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 	 */
 	public void removeCustomPlayer(UUID playerUUID) {
 		if (this.players.containsKey(playerUUID)) {
-			CustomPlayer player = this.players.get(playerUUID);
+			T player = this.players.get(playerUUID);
 			player.save();
 			player.remove();
 			player.setPlayer(null);
@@ -173,9 +195,34 @@ public class CustomPlayerHandler<T extends CustomPlayer> implements Runnable {
 		}
 	}
 
+	/**
+	 * Sets the player field of the CustomPlayer when they join, associating the
+	 * previously created CustomPlayer (by the AsyncPlayerPreLogin) with this
+	 * new player and putting it into the handler for use.
+	 * 
+	 * @param player
+	 *            The CustomPlayer object.
+	 * @param realPlayer
+	 *            The Player object to be associated with it.
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	void setPlayerOnJoin(CustomPlayer<? extends OrionPlugin> player,
+			Player realPlayer) {
+		player.setPlayer(realPlayer);
+		player.construct();
+		for (Countdown countdown : this.globalCountdowns) {
+			player.addCountdown(countdown.copy(player.player));
+		}
+		for (Hologram hologram : this.globalHolograms) {
+			player.showHologram(hologram);
+		}
+		this.players.put(player.playerUUID, (T) player);
+	}
+
 	public void showHologram(Hologram hologram) {
 		this.globalHolograms.add(hologram);
-		for (CustomPlayer player : getCustomPlayers()) {
+		for (T player : getCustomPlayers()) {
 			hologram.show(player);
 		}
 	}

@@ -30,7 +30,7 @@ public abstract class OrionPlugin extends JavaPlugin {
 
 	abstract public void enable();
 
-	public abstract CustomPlayerHandler<? extends CustomPlayer> getCustomPlayerHandler();
+	public abstract CustomPlayerHandler<? extends OrionPlugin, ? extends CustomPlayer<? extends OrionPlugin>> getCustomPlayerHandler();
 
 	public HolographicMenuListener getHolographicMenuListener() {
 		return this.holographicMenuListener;

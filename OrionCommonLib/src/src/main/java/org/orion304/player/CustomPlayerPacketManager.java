@@ -11,14 +11,16 @@ import net.minecraft.server.v1_7_R3.PlayerConnection;
 
 import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
 
+import src.main.java.org.orion304.OrionPlugin;
+
 public class CustomPlayerPacketManager implements Runnable {
 
 	private static final long delay = 2000L;
 
-	private final CustomPlayer player;
+	private final CustomPlayer<? extends OrionPlugin> player;
 	private PlayerConnection conn;
 
-	CustomPlayerPacketManager(CustomPlayer player) {
+	CustomPlayerPacketManager(CustomPlayer<? extends OrionPlugin> player) {
 		this.player = player;
 	}
 

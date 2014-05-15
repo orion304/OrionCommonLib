@@ -15,13 +15,14 @@ import src.main.java.org.orion304.utils.ServerUtils;
 public class HolographicMenu {
 
 	private final OrionPlugin plugin;
-	private final CustomPlayer customPlayer;
+	private final CustomPlayer<? extends OrionPlugin> customPlayer;
 	private final Player player;
 	private final List<Hologram> panes = new ArrayList<>();
 
 	private Location boldedLocation = null;
 
-	public HolographicMenu(OrionPlugin plugin, CustomPlayer customPlayer) {
+	public HolographicMenu(OrionPlugin plugin,
+			CustomPlayer<? extends OrionPlugin> customPlayer) {
 		this.plugin = plugin;
 		this.customPlayer = customPlayer;
 		this.player = customPlayer.getPlayer();

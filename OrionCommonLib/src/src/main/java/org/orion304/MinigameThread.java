@@ -44,7 +44,7 @@ public abstract class MinigameThread implements Runnable {
 	protected GameState state = GameState.OFF;
 
 	final OrionPlugin plugin;
-	private final int numberOfPlayers;
+	// private final int numberOfPlayers;
 
 	final int playerThreshold;
 	private long fireworkTick = 0;
@@ -60,7 +60,7 @@ public abstract class MinigameThread implements Runnable {
 			int numberOfPlayers, long prepDuration, long celebrationsDuration) {
 		this.plugin = plugin;
 		this.playerThreshold = minNumberOfPlayers;
-		this.numberOfPlayers = numberOfPlayers;
+		// this.numberOfPlayers = numberOfPlayers;
 		this.prepDuration = prepDuration;
 		this.celebrationsDuration = celebrationsDuration;
 

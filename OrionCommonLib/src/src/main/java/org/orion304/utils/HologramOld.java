@@ -30,7 +30,7 @@ import src.main.java.org.orion304.holographicmenu.HolographicMenuChoice;
 
 public class HologramOld {
 	private static final double distance = 0.23;
-	private static final double offset = -1.4;
+	// private static final double offset = -1.4;
 
 	private final List<String> lines = new ArrayList<String>();
 

@@ -1,12 +1,16 @@
 package src.main.java.org.orion304.player;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -14,9 +18,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
+import src.main.java.org.orion304.OrionPlugin;
+
 public class CustomPlayerListener implements Listener {
 
-	private final CustomPlayerHandler<? extends CustomPlayer> handler;
+	private final CustomPlayerHandler<? extends OrionPlugin, ? extends CustomPlayer<? extends OrionPlugin>> handler;
+
+	private final Map<UUID, CustomPlayer<? extends OrionPlugin>> players = new ConcurrentHashMap<>();
 
 	/**
 	 * Creates a new CustomPlayerListener, which will listen to all relevant
@@ -27,8 +35,24 @@ public class CustomPlayerListener implements Listener {
 	 *            The CustomPlayerHandler which handles all the CustomPlayers.
 	 */
 	public CustomPlayerListener(
-			CustomPlayerHandler<? extends CustomPlayer> handler) {
+			CustomPlayerHandler<? extends OrionPlugin, ? extends CustomPlayer<? extends OrionPlugin>> handler) {
 		this.handler = handler;
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
+		CustomPlayer<? extends OrionPlugin> player = this.handler
+				.newCustomPlayer(event);
+		this.players.put(event.getUniqueId(), player);
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onAsyncPlayerPreLoginMonitor(AsyncPlayerPreLoginEvent event) {
+		UUID id = event.getUniqueId();
+		if (this.players.containsKey(id)
+				&& event.getLoginResult() != Result.ALLOWED) {
+			this.players.remove(id);
+		}
 	}
 
 	/**
@@ -40,7 +64,8 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		Player player = event.getEntity();
-		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		CustomPlayer<? extends OrionPlugin> customPlayer = this.handler
+				.getCustomPlayer(player);
 		customPlayer.noPacketTime = System.currentTimeMillis();
 	}
 
@@ -54,7 +79,8 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
 	public void onPlayerExpChange(PlayerExpChangeEvent event) {
 		Player player = event.getPlayer();
-		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		CustomPlayer<? extends OrionPlugin> customPlayer = this.handler
+				.getCustomPlayer(player);
 		if (customPlayer.addExp(event.getAmount())) {
 			event.setAmount(0);
 		}
@@ -63,7 +89,8 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
-		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		CustomPlayer<? extends OrionPlugin> customPlayer = this.handler
+				.getCustomPlayer(player);
 		if (customPlayer.useItem(player.getInventory().getHeldItemSlot(),
 				event.getItem(), event.getAction())) {
 			event.setCancelled(true);
@@ -80,8 +107,10 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		setNewPlayer(player);
-		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		UUID id = player.getUniqueId();
+		CustomPlayer<? extends OrionPlugin> customPlayer = this.players.get(id);
+		this.handler.setPlayerOnJoin(customPlayer, player);
+		customPlayer.refreshHolograms();
 		customPlayer.noPacketTime = System.currentTimeMillis();
 	}
 
@@ -113,7 +142,8 @@ public class CustomPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
 	public void onPlayerWorldChange(PlayerChangedWorldEvent event) {
 		Player player = event.getPlayer();
-		CustomPlayer customPlayer = this.handler.getCustomPlayer(player);
+		CustomPlayer<? extends OrionPlugin> customPlayer = this.handler
+				.getCustomPlayer(player);
 		customPlayer.knownEntities.clear();
 		customPlayer.noPacketTime = System.currentTimeMillis();
 		customPlayer.refreshHolograms();
@@ -140,7 +170,8 @@ public class CustomPlayerListener implements Listener {
 	 */
 	private void setNewPlayer(Player player) {
 		UUID playerUUID = player.getUniqueId();
-		CustomPlayer customPlayer = this.handler.getCustomPlayer(playerUUID);
+		CustomPlayer<? extends OrionPlugin> customPlayer = this.handler
+				.getCustomPlayer(playerUUID);
 		customPlayer.setPlayer(player);
 		customPlayer.refreshHolograms();
 	}

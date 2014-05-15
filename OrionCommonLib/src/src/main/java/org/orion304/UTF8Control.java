@@ -22,6 +22,7 @@ public class UTF8Control extends Control {
 		ResourceBundle bundle = null;
 		if (format.equals("java.class")) {
 			try {
+				@SuppressWarnings("unchecked")
 				Class<? extends ResourceBundle> bundleClass = (Class<? extends ResourceBundle>) loader
 						.loadClass(bundleName);
 

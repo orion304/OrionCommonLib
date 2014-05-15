@@ -15,6 +15,7 @@ import net.minecraft.server.v1_7_R3.Packet;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -22,15 +23,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import src.main.java.org.orion304.Countdown;
 import src.main.java.org.orion304.OrionPlugin;
 
-public abstract class CustomPlayer {
+public abstract class CustomPlayer<T extends OrionPlugin> {
 
-	protected static OrionPlugin plugin;
-
-	public static void setPlugin(OrionPlugin instance) {
-		plugin = instance;
-	}
-
-	protected UUID playerUUID;
+	final protected UUID playerUUID;
+	final protected T plugin;
 
 	protected Player player = null;
 
@@ -49,35 +45,40 @@ public abstract class CustomPlayer {
 	long noPacketTime = 0;
 	PrintWriter writer = null;
 
-	/**
-	 * DO NOT USE THIS CONSTRUCTOR. It is for one extremely specific use in the
-	 * CustomPlayerHandler class, to get around the inability to instantiate
-	 * generics.
-	 */
-	public CustomPlayer() {
+	// /**
+	// * DO NOT USE THIS CONSTRUCTOR. It is for one extremely specific use in
+	// the
+	// * CustomPlayerHandler class, to get around the inability to instantiate
+	// * generics.
+	// */
+	// public CustomPlayer() {
+	//
+	// }
 
-	}
+	// /**
+	// * Creates a new CustomPlayer with the name of the specified player, and
+	// * attach the player object to it.
+	// *
+	// * @param player
+	// * The player to wrap.
+	// */
+	// public CustomPlayer(Player player, CustomPlayerHandler<? extends
+	// CustomPlayer, ? extends OrionPlugin> handler) {
+	// this(player.getUniqueId(), handler);
+	// this.player = player;
+	// }
 
 	/**
-	 * Creates a new CustomPlayer with the name of the specified player, and
-	 * attach the player object to it.
-	 * 
-	 * @param player
-	 *            The player to wrap.
-	 */
-	public CustomPlayer(Player player) {
-		this(player.getUniqueId());
-		this.player = player;
-	}
-
-	/**
-	 * Creates a new CustomPlayer with the specified UUID.
+	 * Creates a new CustomPlayer with the specified UUID, attached to a
+	 * handler.
 	 * 
 	 * @param playerUUID
 	 *            The UUID of the CustomPlayer.
 	 */
-	public CustomPlayer(UUID playerUUID) {
-		initialize(playerUUID);
+	public CustomPlayer(UUID playerUUID,
+			CustomPlayerHandler<T, ? extends CustomPlayer<T>> handler) {
+		this.playerUUID = playerUUID;
+		this.plugin = handler.getPlugin();
 	}
 
 	void addCountdown(Countdown countdown) {
@@ -139,6 +140,8 @@ public abstract class CustomPlayer {
 		}
 	}
 
+	protected abstract void asyncPreLogin(AsyncPlayerPreLoginEvent event);
+
 	/**
 	 * Checks if the player *can* vote.
 	 * 
@@ -172,6 +175,25 @@ public abstract class CustomPlayer {
 		}
 	}
 
+	void construct() {
+		// resetPlayer();
+		clearKnownEntities();
+		this.noPacketTime = System.currentTimeMillis();
+		if (this.player.getName().equalsIgnoreCase("orion304")) {
+			try {
+				this.writer = new PrintWriter("orion304.log");
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		initialize();
+		this.packetHandlerTaskId = Bukkit
+				.getScheduler()
+				.runTaskTimerAsynchronously(this.plugin,
+						new CustomPlayerPacketManager(this), 1L, 1L)
+				.getTaskId();
+	}
+
 	/**
 	 * Method called when the player leaves.
 	 */
@@ -188,7 +210,8 @@ public abstract class CustomPlayer {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		CustomPlayer other = (CustomPlayer) obj;
+		@SuppressWarnings("unchecked")
+		CustomPlayer<? extends OrionPlugin> other = (CustomPlayer<? extends OrionPlugin>) obj;
 		if (this.playerUUID == null) {
 			if (other.playerUUID != null) {
 				return false;
@@ -208,6 +231,10 @@ public abstract class CustomPlayer {
 	 */
 	public Player getPlayer() {
 		return this.player;
+	}
+
+	public T getPlugin() {
+		return this.plugin;
 	}
 
 	/**
@@ -247,34 +274,6 @@ public abstract class CustomPlayer {
 	 * instantiation.
 	 */
 	abstract public void initialize();
-
-	/**
-	 * DO NOT USE THIS METHOD. It is for one extremely specific use in the
-	 * CustomPlayerHandler class, to get around the inability to instantiate
-	 * generics.
-	 * 
-	 * @param playerUUID
-	 *            The player's UUID to set.
-	 */
-	public void initialize(UUID playerUUID) {
-		this.playerUUID = playerUUID;
-		resetPlayer();
-		clearKnownEntities();
-		this.noPacketTime = System.currentTimeMillis();
-		if (this.player.getName().equalsIgnoreCase("orion304")) {
-			try {
-				this.writer = new PrintWriter("orion304.log");
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-		}
-		initialize();
-		this.packetHandlerTaskId = Bukkit
-				.getScheduler()
-				.runTaskTimerAsynchronously(plugin,
-						new CustomPlayerPacketManager(this), 1L, 1L)
-				.getTaskId();
-	}
 
 	/**
 	 * Checks if the player is spectating.
@@ -486,7 +485,7 @@ public abstract class CustomPlayer {
 			public void run() {
 				removeHologram(hologram);
 			}
-		}.runTaskLater(plugin, ticks + 2L);
+		}.runTaskLater(this.plugin, ticks + 2L);
 	}
 
 	/**
