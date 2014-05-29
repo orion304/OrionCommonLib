@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
@@ -39,7 +40,7 @@ public class CustomPlayerListener implements Listener {
 		this.handler = handler;
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
 		CustomPlayer<? extends OrionPlugin> player = this.handler
 				.newCustomPlayer(event);
@@ -112,6 +113,15 @@ public class CustomPlayerListener implements Listener {
 		this.handler.setPlayerOnJoin(customPlayer, player);
 		customPlayer.refreshHolograms();
 		customPlayer.noPacketTime = System.currentTimeMillis();
+	}
+
+	@EventHandler(ignoreCancelled = false)
+	public void onPlayerLogin(PlayerLoginEvent event) {
+		UUID id = event.getPlayer().getUniqueId();
+		CustomPlayer<? extends OrionPlugin> player = this.players.get(id);
+		if (player != null) {
+			player.login(event);
+		}
 	}
 
 	/**

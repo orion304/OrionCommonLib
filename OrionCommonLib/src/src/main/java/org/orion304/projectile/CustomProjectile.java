@@ -1,7 +1,10 @@
 package src.main.java.org.orion304.projectile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -9,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
+import src.main.java.org.orion304.Hitbox;
 import src.main.java.org.orion304.OrionPlugin;
 import src.main.java.org.orion304.utils.EnvironmentUtils;
 
@@ -34,9 +38,15 @@ public abstract class CustomProjectile implements Runnable {
 	protected final Location location;
 	protected final Vector velocity;
 	private final LivingEntity shooter;
-	private final boolean hasGravity, hitsBlocks, hitsEntities;
+	protected final boolean hasGravity;
+
+	private final boolean hitsBlocks;
+
+	private final boolean hitsEntities;
 	private boolean isAlive = true;
 	private final int taskId;
+	private final double hitRadius;
+	protected final Hitbox hitbox;
 
 	public CustomProjectile(OrionPlugin plugin, Location location,
 			Vector velocity, LivingEntity shooter) {
@@ -46,6 +56,13 @@ public abstract class CustomProjectile implements Runnable {
 	public CustomProjectile(OrionPlugin plugin, Location location,
 			Vector velocity, LivingEntity shooter, boolean hasGravity,
 			boolean hitsBlocks, boolean hitsEntities) {
+		this(plugin, location, velocity, shooter, hasGravity, hitsBlocks,
+				hitsEntities, .1D);
+	}
+
+	public CustomProjectile(OrionPlugin plugin, Location location,
+			Vector velocity, LivingEntity shooter, boolean hasGravity,
+			boolean hitsBlocks, boolean hitsEntities, double hitRadius) {
 		this.plugin = plugin;
 		this.location = location;
 		this.velocity = velocity;
@@ -53,6 +70,8 @@ public abstract class CustomProjectile implements Runnable {
 		this.hasGravity = hasGravity;
 		this.hitsBlocks = hitsBlocks;
 		this.hitsEntities = hitsEntities;
+		this.hitRadius = hitRadius;
+		this.hitbox = new Hitbox(hitRadius, hitRadius);
 		this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin,
 				this, 0L, 1L);
 	}
@@ -69,47 +88,61 @@ public abstract class CustomProjectile implements Runnable {
 
 	@Override
 	public void run() {
-		if (this.hasGravity) {
-			this.velocity.add(g);
+		int i = (int) (this.velocity.length() * 4);
+		Vector v = this.velocity.clone().multiply(1 / (double) i);
+		List<LivingEntity> shooter = new ArrayList<>();
+		shooter.add(this.shooter);
+		Map<LivingEntity, Hitbox> hitboxes = new HashMap<>();
+		for (LivingEntity entity : EnvironmentUtils.getEntitiesAroundPoint(
+				this.location, this.velocity.length() + 5, LivingEntity.class,
+				shooter)) {
+			Hitbox hitbox = new Hitbox(entity);
+			hitboxes.put(entity, hitbox);
 		}
-		this.location.add(this.velocity);
-		if (this.hitsBlocks && this.location.getBlock().getType().isSolid()) {
-			CustomProjectileHitBlockEvent event = new CustomProjectileHitBlockEvent(
-					this, this.location.getBlock());
-			Bukkit.getPluginManager().callEvent(event);
-			if (!event.isCancelled()) {
-				this.isAlive = false;
+		for (int j = 0; j < i; j++) {
+			if (this.hasGravity) {
+				this.velocity.add(g.clone().multiply(1 / (double) i));
 			}
-		} else if (this.hitsEntities) {
-			List<LivingEntity> shooter = new ArrayList<>();
-			shooter.add(this.shooter);
-			Set<LivingEntity> entities = EnvironmentUtils
-					.getEntitiesAroundPoint(this.location, 2D,
-							LivingEntity.class, shooter);
-			double bestDistance = 5, distance;
-			LivingEntity closestEntity = null;
-			for (LivingEntity entity : entities) {
-				distance = entity.getLocation().distance(this.location);
-				if (closestEntity == null || bestDistance < distance) {
-					bestDistance = distance;
-					closestEntity = entity;
-				}
-			}
-
-			if (!entities.isEmpty()) {
-				CustomProjectileHitEntityEvent event = new CustomProjectileHitEntityEvent(
-						this, closestEntity, entities);
+			this.location.add(v);
+			this.hitbox.setCenterLocation(this.location);
+			if (this.hitsBlocks && this.location.getBlock().getType().isSolid()) {
+				CustomProjectileHitBlockEvent event = new CustomProjectileHitBlockEvent(
+						this, this.location.getBlock());
 				Bukkit.getPluginManager().callEvent(event);
 				if (!event.isCancelled()) {
 					this.isAlive = false;
 				}
-			}
-		}
+			} else if (this.hitsEntities) {
+				Set<LivingEntity> affectedEntities = new HashSet<>();
+				double bestDistance = 5D, distance;
+				LivingEntity closestEntity = null;
+				for (LivingEntity entity : hitboxes.keySet()) {
+					if (hitboxes.get(entity).isInside(this.hitbox)) {
+						affectedEntities.add(entity);
+						distance = entity.getLocation().distance(this.location);
+						if (closestEntity == null || bestDistance < distance) {
+							bestDistance = distance;
+							closestEntity = entity;
+						}
+					}
+				}
 
-		if (this.isAlive) {
-			animate();
-		} else {
-			Bukkit.getScheduler().cancelTask(this.taskId);
+				if (!affectedEntities.isEmpty()) {
+					CustomProjectileHitEntityEvent event = new CustomProjectileHitEntityEvent(
+							this, closestEntity, affectedEntities);
+					Bukkit.getPluginManager().callEvent(event);
+					if (!event.isCancelled()) {
+						this.isAlive = false;
+					}
+				}
+			}
+
+			if (this.isAlive) {
+				animate();
+			} else {
+				Bukkit.getScheduler().cancelTask(this.taskId);
+				return;
+			}
 		}
 	}
 }

@@ -16,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -297,6 +298,8 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 			return this.knownEntities.contains(value);
 		}
 	}
+
+	abstract protected void login(PlayerLoginEvent event);
 
 	/**
 	 * Returns the maximum number of times the player can vote.
