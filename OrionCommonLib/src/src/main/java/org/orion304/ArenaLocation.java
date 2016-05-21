@@ -10,15 +10,17 @@ import org.bukkit.WorldCreator;
 
 public class ArenaLocation {
 
-	private final String key;
-	private final String displayName;
-	private final String world;
+	private String key;
+	private String displayName;
+	private String world;
 	protected Location location;
-	private final List<String> lore = new ArrayList<>();
+
+	private List<String> lore = new ArrayList<>();
+
 	private int votes = 0;
 
-	public ArenaLocation(String key, String displayName, String world,
-			Location location, Collection<? extends String> lore) {
+	public ArenaLocation(String key, String displayName, String world, Location location,
+			Collection<? extends String> lore) {
 		this.key = key;
 		this.displayName = displayName;
 		this.world = world;
@@ -26,8 +28,7 @@ public class ArenaLocation {
 		this.lore.addAll(lore);
 	}
 
-	public ArenaLocation(String key, String displayName, String world,
-			Location location, String... lore) {
+	public ArenaLocation(String key, String displayName, String world, Location location, String... lore) {
 		this(key, displayName, world, location, Arrays.asList(lore));
 	}
 
@@ -54,12 +55,36 @@ public class ArenaLocation {
 		return this.votes;
 	}
 
+	public String getWorld() {
+		return world;
+	}
+
 	public void loadWorld() {
 		this.location.setWorld(new WorldCreator(this.world).createWorld());
 	}
 
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
 	public void setLocation(Location location) {
 		this.location = location;
+	}
+
+	public void setLore(List<String> lore) {
+		this.lore = lore;
+	}
+
+	public void setVotes(int votes) {
+		this.votes = votes;
+	}
+
+	public void setWorld(String world) {
+		this.world = world;
 	}
 
 	public void voteFor() {

@@ -4,7 +4,9 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -165,6 +167,14 @@ public class CustomPlayerHandler<U extends OrionPlugin, T extends CustomPlayer<U
 				player.getName(), null, player.getUniqueId());
 		T customPlayer = newCustomPlayer(event);
 		setPlayerOnJoin(customPlayer, player);
+	}
+
+	public void removeAll() {
+		Set<UUID> keys = new HashSet<>();
+		keys.addAll(this.players.keySet());
+		for (UUID key : keys) {
+			removeCustomPlayer(key);
+		}
 	}
 
 	/**

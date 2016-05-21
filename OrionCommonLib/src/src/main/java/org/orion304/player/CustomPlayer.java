@@ -10,9 +10,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.minecraft.server.v1_7_R3.Packet;
-
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
@@ -20,9 +19,12 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
+import net.minecraft.server.v1_9_R1.Packet;
 import src.main.java.org.orion304.Countdown;
 import src.main.java.org.orion304.OrionPlugin;
+import src.main.java.org.orion304.utils.MathUtils;
 
 public abstract class CustomPlayer<T extends OrionPlugin> {
 
@@ -38,13 +40,16 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	final List<Packet> packets = new ArrayList<>();
 	final ConcurrentHashMap<Long, List<Packet>> futurePackets = new ConcurrentHashMap<>();
 	final List<Hologram> holograms = new ArrayList<>();
-	long tick = 0;
+	protected long tick = 0;
 
 	private int packetHandlerTaskId = -1;
 
 	final List<String> knownEntities = new ArrayList<>();
 	long noPacketTime = 0;
 	PrintWriter writer = null;
+
+	protected Vector velocity = new Vector(0, 0, 0);
+	private Location previouslocation = null;
 
 	// /**
 	// * DO NOT USE THIS CONSTRUCTOR. It is for one extremely specific use in
@@ -72,12 +77,11 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	/**
 	 * Creates a new CustomPlayer with the specified UUID, attached to a
 	 * handler.
-	 * 
+	 *
 	 * @param playerUUID
 	 *            The UUID of the CustomPlayer.
 	 */
-	public CustomPlayer(UUID playerUUID,
-			CustomPlayerHandler<T, ? extends CustomPlayer<T>> handler) {
+	public CustomPlayer(UUID playerUUID, CustomPlayerHandler<T, ? extends CustomPlayer<T>> handler) {
 		this.playerUUID = playerUUID;
 		this.plugin = handler.getPlugin();
 	}
@@ -97,7 +101,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Adds a countdown to the player's XP bar.
-	 * 
+	 *
 	 * @param duration
 	 *            The duration of the countdown.
 	 */
@@ -107,7 +111,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Adds a countdown to the player's XP bar, with an option for counting up.
-	 * 
+	 *
 	 * @param duration
 	 *            The duration of the countdown.
 	 * @param countUp
@@ -121,7 +125,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	/**
 	 * Used in the event where a player's XP changes. Returns true if the event
 	 * should be cancelled, it handles the persistence of XP through countdowns.
-	 * 
+	 *
 	 * @param xp
 	 *            The amount of XP to give.
 	 * @return True if the event should be cancelled.
@@ -145,7 +149,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Checks if the player *can* vote.
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean canVote() {
@@ -188,11 +192,8 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 			}
 		}
 		initialize();
-		this.packetHandlerTaskId = Bukkit
-				.getScheduler()
-				.runTaskTimerAsynchronously(this.plugin,
-						new CustomPlayerPacketManager(this), 1L, 1L)
-				.getTaskId();
+		this.packetHandlerTaskId = Bukkit.getScheduler()
+				.runTaskTimerAsynchronously(this.plugin, new CustomPlayerPacketManager(this), 1L, 1L).getTaskId();
 	}
 
 	/**
@@ -227,7 +228,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	 * Gets the Player that is online with this CustomPlayer's UUID. Returns
 	 * null if there is no player online. The player object is automatically
 	 * updated when players leave and join.
-	 * 
+	 *
 	 * @return The Player.
 	 */
 	public Player getPlayer() {
@@ -240,11 +241,15 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Gets the UUID associated with this player.
-	 * 
+	 *
 	 * @return The UUID of the player.
 	 */
 	public UUID getUUID() {
 		return this.playerUUID;
+	}
+
+	public Vector getVelocity() {
+		return this.velocity.clone();
 	}
 
 	/**
@@ -256,14 +261,13 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((this.playerUUID == null) ? 0 : this.playerUUID.hashCode());
+		result = prime * result + ((this.playerUUID == null) ? 0 : this.playerUUID.hashCode());
 		return result;
 	}
 
 	/**
 	 * Checks if the player has voted already.
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean hasVoted() {
@@ -278,7 +282,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Checks if the player is spectating.
-	 * 
+	 *
 	 * @return True if the player is spectating.
 	 */
 	protected boolean isSpectating() {
@@ -287,7 +291,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Checks if the CustomPlayer knows about an entity sent via packets.
-	 * 
+	 *
 	 * @param id
 	 *            The entity to check for.
 	 * @return True if the CustomPlayer knows of that entity
@@ -303,7 +307,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Returns the maximum number of times the player can vote.
-	 * 
+	 *
 	 * @return
 	 */
 	abstract protected int maxVotes();
@@ -348,6 +352,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	void run() {
 		this.tick++;
+
 		if (!this.countdowns.isEmpty()) {
 			Countdown countdown = this.countdowns.get(0);
 			countdown.run();
@@ -355,6 +360,19 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 				this.countdowns.remove(0);
 			}
 		}
+
+		Location location = this.player.getLocation();
+		if (this.previouslocation != null) {
+			if (location.getWorld().equals(this.previouslocation.getWorld())) {
+				double length = this.previouslocation.distanceSquared(location);
+				if (length > 0) {
+					this.velocity = MathUtils.getDistanceVector(this.previouslocation, location);
+				}
+			} else {
+				this.velocity = new Vector(0, 0, 0);
+			}
+		}
+		this.previouslocation = location.clone();
 		handle();
 	}
 
@@ -365,7 +383,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Sends a message to the player.
-	 * 
+	 *
 	 * @param string
 	 *            The message.
 	 */
@@ -375,7 +393,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Sends a packet to this player.
-	 * 
+	 *
 	 * @param packets
 	 *            The packets to send.
 	 */
@@ -385,7 +403,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Sends a packet to this player.
-	 * 
+	 *
 	 * @param packets
 	 *            The packets to send.
 	 */
@@ -395,7 +413,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Sends a packet to this player.
-	 * 
+	 *
 	 * @param packets
 	 *            The packets to send.
 	 */
@@ -417,7 +435,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 
 	/**
 	 * Sends a packet to this player.
-	 * 
+	 *
 	 * @param packets
 	 *            The packets to send.
 	 */
@@ -428,7 +446,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	/**
 	 * Sets the Player object attached to this CustomPlayer, for use in
 	 * getPlayer().
-	 * 
+	 *
 	 * @param player
 	 *            The player to set.
 	 */
@@ -439,7 +457,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	/**
 	 * Makes the player be a spectator, or removes it, as specified by
 	 * isSpectating.
-	 * 
+	 *
 	 * @param isSpectating
 	 *            If true, change the player to a spectator.
 	 */
@@ -456,7 +474,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	/**
 	 * Shows a hologram to this player, and keeps track of it through world
 	 * changes and deaths.
-	 * 
+	 *
 	 * @param hologram
 	 *            The hologram to show.
 	 * @param location
@@ -472,7 +490,7 @@ public abstract class CustomPlayer<T extends OrionPlugin> {
 	/**
 	 * Shows a hologram to this player, and keeps track of it through world
 	 * changes and deaths.
-	 * 
+	 *
 	 * @param hologram
 	 *            The hologram to show.
 	 * @param location

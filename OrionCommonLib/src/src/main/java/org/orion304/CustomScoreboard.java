@@ -12,15 +12,18 @@ import org.bukkit.scoreboard.Scoreboard;
 
 public class CustomScoreboard {
 
-	private final Scoreboard scoreboard;
-
-	private final List<String> lines = new ArrayList<>();
 	private static final String name = "custom";
 
+	private final Scoreboard scoreboard;
+	private final List<String> lines = new ArrayList<>();
+
 	public CustomScoreboard() {
-		this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-		Objective objective = this.scoreboard.registerNewObjective(name,
-				"dummy");
+		this(Bukkit.getScoreboardManager().getNewScoreboard());
+	}
+
+	public CustomScoreboard(Scoreboard scoreboard) {
+		this.scoreboard = scoreboard;
+		Objective objective = this.scoreboard.registerNewObjective(name, "dummy");
 		objective.setDisplayName("default");
 		for (int i = 0; i < ChatColor.values().length; i++) {
 			this.lines.add(" ");

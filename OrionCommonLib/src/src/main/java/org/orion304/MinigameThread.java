@@ -28,8 +28,7 @@ import src.main.java.org.orion304.utils.MathUtils;
 public abstract class MinigameThread implements Runnable {
 
 	private static final ItemStack voteItem = new ItemStack(Material.DIAMOND, 1);
-	private static final ItemStack leaveItem = new ItemStack(
-			Material.NETHER_STAR, 1);
+	private static final ItemStack leaveItem = new ItemStack(Material.NETHER_STAR, 1);
 
 	static {
 		ItemMeta voteMeta = voteItem.getItemMeta();
@@ -56,8 +55,8 @@ public abstract class MinigameThread implements Runnable {
 	public ArenaLocation currentArena;
 	private Menu voteMenu;
 
-	public MinigameThread(OrionPlugin plugin, int minNumberOfPlayers,
-			int numberOfPlayers, long prepDuration, long celebrationsDuration) {
+	public MinigameThread(OrionPlugin plugin, int minNumberOfPlayers, int numberOfPlayers, long prepDuration,
+			long celebrationsDuration) {
 		this.plugin = plugin;
 		this.playerThreshold = minNumberOfPlayers;
 		// this.numberOfPlayers = numberOfPlayers;
@@ -100,8 +99,7 @@ public abstract class MinigameThread implements Runnable {
 	 * finished.
 	 */
 	protected void checkForOffConditions() {
-		if (System.currentTimeMillis() > this.starttime
-				+ this.celebrationsDuration) {
+		if (System.currentTimeMillis() > this.starttime + this.celebrationsDuration) {
 			gotoOff();
 		}
 	}
@@ -111,7 +109,7 @@ public abstract class MinigameThread implements Runnable {
 	 * online to begin preparations.
 	 */
 	protected void checkForPrepConditions() {
-		if (Bukkit.getOnlinePlayers().length >= this.playerThreshold) {
+		if (Bukkit.getOnlinePlayers().size() >= this.playerThreshold) {
 			gotoPrep();
 		}
 	}
@@ -132,7 +130,7 @@ public abstract class MinigameThread implements Runnable {
 	/**
 	 * Not called by this template. Selects the players to shoot fireworks on
 	 * when the game is complete.
-	 * 
+	 *
 	 * @param players
 	 *            The players to celebrate.
 	 */
@@ -144,7 +142,7 @@ public abstract class MinigameThread implements Runnable {
 	/**
 	 * Not called by this template. Selects the players to shoot fireworks on
 	 * when the game is complete.
-	 * 
+	 *
 	 * @param players
 	 *            The players to celebrate.
 	 */
@@ -188,12 +186,11 @@ public abstract class MinigameThread implements Runnable {
 
 	/**
 	 * Fires a random firework at the location.
-	 * 
+	 *
 	 * @param location
 	 */
 	private void fireFirework(Location location) {
-		Firework fw = (Firework) location.getWorld().spawnEntity(location,
-				EntityType.FIREWORK);
+		Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
 		FireworkMeta fwm = fw.getFireworkMeta();
 		// Our random generator
 		Random r = new Random();
@@ -224,8 +221,7 @@ public abstract class MinigameThread implements Runnable {
 		Color c2 = getColor(r2i);
 
 		// Create our effect with this
-		FireworkEffect effect = FireworkEffect.builder()
-				.flicker(r.nextBoolean()).withColor(c1).withFade(c2).with(type)
+		FireworkEffect effect = FireworkEffect.builder().flicker(r.nextBoolean()).withColor(c1).withFade(c2).with(type)
 				.trail(r.nextBoolean()).build();
 
 		// Then apply the effect to the meta
@@ -250,7 +246,7 @@ public abstract class MinigameThread implements Runnable {
 			if (this.fireworkPlayers.isEmpty()) {
 				players = this.fireworkPlayers;
 			} else {
-				players = Arrays.asList(Bukkit.getOnlinePlayers());
+				players = new ArrayList<Player>(Bukkit.getOnlinePlayers());
 			}
 			for (Player player : players) {
 				fireFirework(player.getLocation());
@@ -260,7 +256,7 @@ public abstract class MinigameThread implements Runnable {
 
 	/**
 	 * Returns the list of arena that are chosen for voting.
-	 * 
+	 *
 	 * @return
 	 */
 	public List<? extends ArenaLocation> getChosenArenas() {
@@ -269,7 +265,7 @@ public abstract class MinigameThread implements Runnable {
 
 	/**
 	 * Returns a color based on the integer parameter
-	 * 
+	 *
 	 * @param i
 	 *            The integer
 	 * @return The chat color
@@ -333,7 +329,7 @@ public abstract class MinigameThread implements Runnable {
 
 	/**
 	 * Return the state the game is in.
-	 * 
+	 *
 	 * @return The GameState.
 	 */
 	public GameState getState() {
@@ -343,7 +339,7 @@ public abstract class MinigameThread implements Runnable {
 	/**
 	 * Not called by this template. Gives an item for leaving to the specified
 	 * player.
-	 * 
+	 *
 	 * @param player
 	 *            The player to give the leave item to.
 	 */
@@ -354,14 +350,28 @@ public abstract class MinigameThread implements Runnable {
 
 	/**
 	 * Not called by this template. Gives an item for voting to the specified
+	 * player and specified inventory slot.
+	 *
+	 *
+	 * @param slot
+	 *            The slot to set the voting item.
+	 * @param player
+	 *            The player to give the vote item to.
+	 */
+	public void giveVoteItem(int slot, Player player) {
+		Inventory inventory = player.getInventory();
+		inventory.setItem(slot, voteItem);
+	}
+
+	/**
+	 * Not called by this template. Gives an item for voting to the specified
 	 * player.
-	 * 
+	 *
 	 * @param player
 	 *            The player to give the vote item to.
 	 */
 	public void giveVoteItem(Player player) {
-		Inventory inventory = player.getInventory();
-		inventory.setItem(0, voteItem);
+		giveVoteItem(0, player);
 	}
 
 	/**
@@ -380,14 +390,13 @@ public abstract class MinigameThread implements Runnable {
 		this.state = GameState.PREP;
 		beginPreparations();
 		this.starttime = System.currentTimeMillis();
-		this.plugin.getCustomPlayerHandler().addGlobalCountdown(
-				this.prepDuration);
+		this.plugin.getCustomPlayerHandler().addGlobalCountdown(this.prepDuration);
 	}
 
 	/**
 	 * Called by this template when a player interacts with an item in their
 	 * inventory. Handles the voting of the player or calls handleItemInteract.
-	 * 
+	 *
 	 * @param player
 	 *            The player who interacted with an item.
 	 * @param item
@@ -409,7 +418,7 @@ public abstract class MinigameThread implements Runnable {
 	/**
 	 * Called by this template interacts with an item that isn't used for map
 	 * voting.
-	 * 
+	 *
 	 * @param player
 	 *            The player who interacted with the item.
 	 * @param item
@@ -420,7 +429,7 @@ public abstract class MinigameThread implements Runnable {
 
 	/**
 	 * Called by this template when a player votes on a map.
-	 * 
+	 *
 	 * @param player
 	 */
 	abstract protected void handleVote(Player player);
@@ -428,7 +437,7 @@ public abstract class MinigameThread implements Runnable {
 	/**
 	 * Not called by this template. This installs the selected arenas into the
 	 * vote item.
-	 * 
+	 *
 	 * @param arenas
 	 *            The arenas to install.
 	 */
@@ -437,8 +446,7 @@ public abstract class MinigameThread implements Runnable {
 		this.voteMenu = new Menu(this.plugin, "Vote For A Map", arenas.size());
 		for (int i = 0; i < arenas.size(); i++) {
 			ArenaLocation arena = arenas.get(i);
-			MenuItem item = new MenuItem(arena.getDisplayName(),
-					Material.EMERALD, 1, arena.getLore());
+			MenuItem item = new MenuItem(arena.getDisplayName(), Material.EMERALD, 1, arena.getLore());
 			this.voteMenu.addMenuItem(i, item);
 			this.arenas.add(arena);
 		}
@@ -447,7 +455,7 @@ public abstract class MinigameThread implements Runnable {
 	/**
 	 * Called by this template, and handles when players vote using the vote
 	 * menu.
-	 * 
+	 *
 	 * @param menu
 	 *            The menu that was clicked.
 	 * @param i

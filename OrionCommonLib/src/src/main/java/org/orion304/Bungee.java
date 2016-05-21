@@ -2,7 +2,6 @@ package src.main.java.org.orion304;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -10,15 +9,12 @@ import org.bukkit.entity.Player;
 public class Bungee {
 
 	static {
-		Bukkit.getServer()
-				.getMessenger()
-				.registerOutgoingPluginChannel(OrionPlugin.getPlugin(),
-						"BungeeCord");
+		Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(OrionPlugin.getPlugin(), "BungeeCord");
 	}
 
 	public static void disconnect(Player player) {
 		player.sendMessage("[c]Connecting to lobby..");
-		Bungee.send(player, "Connect", "lobby" + (new Random().nextInt(3) + 1));
+		Bungee.send(player, "Connect", "lobby");
 	}
 
 	private static void send(Player player, String... stuff) {
@@ -33,8 +29,7 @@ public class Bungee {
 			// impossibro
 			e.printStackTrace();
 		}
-		player.sendPluginMessage(OrionPlugin.getPlugin(), "BungeeCord",
-				b.toByteArray());
+		player.sendPluginMessage(OrionPlugin.getPlugin(), "BungeeCord", b.toByteArray());
 	}
 
 }

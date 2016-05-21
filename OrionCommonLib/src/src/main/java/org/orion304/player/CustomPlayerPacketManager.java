@@ -2,15 +2,14 @@ package src.main.java.org.orion304.player;
 
 import java.lang.reflect.Field;
 
-import net.minecraft.server.v1_7_R3.Packet;
-import net.minecraft.server.v1_7_R3.PacketPlayOutEntityDestroy;
-import net.minecraft.server.v1_7_R3.PacketPlayOutEntityTeleport;
-import net.minecraft.server.v1_7_R3.PacketPlayOutEntityVelocity;
-import net.minecraft.server.v1_7_R3.PacketPlayOutSpawnEntityLiving;
-import net.minecraft.server.v1_7_R3.PlayerConnection;
+import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
 
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
-
+import net.minecraft.server.v1_9_R1.Packet;
+import net.minecraft.server.v1_9_R1.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_9_R1.PacketPlayOutEntityTeleport;
+import net.minecraft.server.v1_9_R1.PacketPlayOutEntityVelocity;
+import net.minecraft.server.v1_9_R1.PacketPlayOutSpawnEntityLiving;
+import net.minecraft.server.v1_9_R1.PlayerConnection;
 import src.main.java.org.orion304.OrionPlugin;
 
 public class CustomPlayerPacketManager implements Runnable {
@@ -63,8 +62,8 @@ public class CustomPlayerPacketManager implements Runnable {
 								}
 							}
 						}
-					} catch (NoSuchFieldException | SecurityException
-							| IllegalArgumentException | IllegalAccessException e) {
+					} catch (NoSuchFieldException | SecurityException | IllegalArgumentException
+							| IllegalAccessException e) {
 						e.printStackTrace();
 					}
 				}
@@ -83,8 +82,8 @@ public class CustomPlayerPacketManager implements Runnable {
 								continue;
 							}
 						}
-					} catch (NoSuchFieldException | SecurityException
-							| IllegalArgumentException | IllegalAccessException e) {
+					} catch (NoSuchFieldException | SecurityException | IllegalArgumentException
+							| IllegalAccessException e) {
 						e.printStackTrace();
 					}
 				}
@@ -99,17 +98,15 @@ public class CustomPlayerPacketManager implements Runnable {
 						synchronized (this.player.knownEntities) {
 							String string = String.valueOf(id);
 							if (this.player.knownEntities.contains(string)
-									&& (System.currentTimeMillis() > this.player.noPacketTime
-											+ delay)) {
+									&& (System.currentTimeMillis() > this.player.noPacketTime + delay)) {
 								if (this.player.writer != null) {
-									this.player.writer.println(packet + " "
-											+ id);
+									this.player.writer.println(packet + " " + id);
 								}
 								this.conn.sendPacket(packet);
 							}
 						}
-					} catch (NoSuchFieldException | SecurityException
-							| IllegalArgumentException | IllegalAccessException e) {
+					} catch (NoSuchFieldException | SecurityException | IllegalArgumentException
+							| IllegalAccessException e) {
 						e.printStackTrace();
 					}
 				} else {

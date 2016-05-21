@@ -21,23 +21,33 @@ public class HolographicMenu {
 
 	private Location boldedLocation = null;
 
-	public HolographicMenu(OrionPlugin plugin,
-			CustomPlayer<? extends OrionPlugin> customPlayer) {
+	public HolographicMenu(OrionPlugin plugin, CustomPlayer<? extends OrionPlugin> customPlayer) {
 		this.plugin = plugin;
 		this.customPlayer = customPlayer;
 		this.player = customPlayer.getPlayer();
 	}
 
-	public void addPane(Location location, String... strings) {
+	public Hologram addPane(Location location, List<String> strings) {
+		return addPane(location, strings.toArray(new String[strings.size()]));
+	}
+
+	public Hologram addPane(Location location, String... strings) {
 		Hologram hologram = new Hologram(this.plugin, location, strings);
 		this.panes.add(hologram);
+		return hologram;
 	}
 
 	public void boldChoice() {
 		HolographicMenuChoice choice = getChoice();
 		if (!choice.getLocation().equals(this.boldedLocation)) {
 			Hologram hologram = choice.getHologram();
-			hologram.boldChoice(choice);
+			for (Hologram holo : this.panes) {
+				if (holo.equals(hologram)) {
+					holo.boldChoice(choice);
+				} else {
+					holo.boldChoice(null);
+				}
+			}
 
 			this.boldedLocation = choice.getLocation();
 		}
@@ -61,8 +71,7 @@ public class HolographicMenu {
 		Vector line = eyeLocation.getDirection();
 
 		for (Hologram hologram : this.panes) {
-			HolographicMenuChoice choice = hologram.getBestChoice(eyeLocation,
-					line);
+			HolographicMenuChoice choice = hologram.getBestChoice(eyeLocation, line);
 			if (choice == null) {
 				ServerUtils.verbose("What the fuck?");
 				continue;

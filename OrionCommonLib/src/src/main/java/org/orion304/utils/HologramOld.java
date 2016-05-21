@@ -4,28 +4,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import net.minecraft.server.v1_7_R3.EntityHorse;
-import net.minecraft.server.v1_7_R3.EntityPlayer;
-import net.minecraft.server.v1_7_R3.EntityWitherSkull;
-import net.minecraft.server.v1_7_R3.Packet;
-import net.minecraft.server.v1_7_R3.PacketPlayOutAttachEntity;
-import net.minecraft.server.v1_7_R3.PacketPlayOutEntityDestroy;
-import net.minecraft.server.v1_7_R3.PacketPlayOutSpawnEntity;
-import net.minecraft.server.v1_7_R3.PacketPlayOutSpawnEntityLiving;
-import net.minecraft.server.v1_7_R3.PlayerConnection;
-import net.minecraft.server.v1_7_R3.WorldServer;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import net.minecraft.server.v1_9_R1.EntityHorse;
+import net.minecraft.server.v1_9_R1.EntityPlayer;
+import net.minecraft.server.v1_9_R1.EntityWitherSkull;
+import net.minecraft.server.v1_9_R1.Packet;
+import net.minecraft.server.v1_9_R1.PacketPlayOutAttachEntity;
+import net.minecraft.server.v1_9_R1.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_9_R1.PacketPlayOutSpawnEntity;
+import net.minecraft.server.v1_9_R1.PacketPlayOutSpawnEntityLiving;
+import net.minecraft.server.v1_9_R1.PlayerConnection;
+import net.minecraft.server.v1_9_R1.WorldServer;
 import src.main.java.org.orion304.holographicmenu.HolographicMenuChoice;
 
 public class HologramOld {
@@ -45,8 +44,7 @@ public class HologramOld {
 	private final Justification justify;
 	private final List<Packet> packets = new ArrayList<>();
 
-	public HologramOld(JavaPlugin plugin, Justification justify,
-			String... lines) {
+	public HologramOld(JavaPlugin plugin, Justification justify, String... lines) {
 		this.constructLines = lines;
 		this.justify = justify;
 		if (justify != Justification.NONE && lines.length != 0) {
@@ -70,10 +68,8 @@ public class HologramOld {
 				double chars = line.replaceAll(" ", "").length();
 				double white = (line.length() - chars) * whitespacelength;
 				double size = white + chars;
-				double formatsize = (maxsize - size) / whitespacelength
-						+ line.length();
-				this.lines.add(String.format(format + Math.round(formatsize)
-						+ "s", lines[i]));
+				double formatsize = (maxsize - size) / whitespacelength + line.length();
+				this.lines.add(String.format(format + Math.round(formatsize) + "s", lines[i]));
 				// ServerUtils.verbose(chars + " " + (line.length() - chars) +
 				// " "
 				// + (chars + (formatsize - chars) * whitespacelength)
@@ -145,8 +141,7 @@ public class HologramOld {
 			}
 		}
 
-		final PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(
-				ints);
+		final PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(ints);
 
 		// this.plugin.getServer().getScheduler()
 		// .runTaskLaterAsynchronously(this.plugin, new Runnable() {
@@ -160,8 +155,7 @@ public class HologramOld {
 		// }, 2L);
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			((CraftPlayer) player).getHandle().playerConnection
-					.sendPacket(packet);
+			((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
 		}
 
 		this.showing = false;
@@ -197,7 +191,7 @@ public class HologramOld {
 
 	/**
 	 * ONLY DO THIS IF THE CLIENT HAS FORGOTTEN ABOUT THE FIRST PACKETS.
-	 * 
+	 *
 	 * @param target
 	 *            Player to show it to again.
 	 */
@@ -232,65 +226,54 @@ public class HologramOld {
 			}
 		}
 		this.player = single_target;
-		Location first = loc.clone().add(0, (this.lines.size() / 2) * distance,
-				0);
+		Location first = loc.clone().add(0, (this.lines.size() / 2) * distance, 0);
 		for (int i = 0; i < this.lines.size(); i++) {
-			this.ids.addAll(showLine(this.plugin, first.clone(),
-					this.lines.get(i), single_target));
+			this.ids.addAll(showLine(this.plugin, first.clone(), this.lines.get(i), single_target));
 			first.subtract(0, distance, 0);
 		}
 		this.showing = true;
 		this.location = loc;
 	}
 
-	private List<Integer> showLine(JavaPlugin plugin, final Location loc,
-			String text, final Player single_target) {
+	private List<Integer> showLine(JavaPlugin plugin, final Location loc, String text, final Player single_target) {
 		WorldServer world = ((CraftWorld) loc.getWorld()).getHandle();
 		final EntityWitherSkull skull = new EntityWitherSkull(world);
 		skull.setLocation(loc.getX(), loc.getY() + 1 + 55, loc.getZ(), 0, 0);
 		// ((CraftWorld) loc.getWorld()).getHandle().addEntity(skull);
-		final PacketPlayOutSpawnEntity packet_skull = new PacketPlayOutSpawnEntity(
-				skull, 66);
+		final PacketPlayOutSpawnEntity packet_skull = new PacketPlayOutSpawnEntity(skull, 66);
 
 		final EntityHorse horse = new EntityHorse(world);
 		horse.setLocation(loc.getX(), loc.getY() + 55, loc.getZ(), 0, 0);
 		horse.setAge(-1700000);
 		horse.setCustomName(text);
 		horse.setCustomNameVisible(true);
-		final PacketPlayOutSpawnEntityLiving packedt = new PacketPlayOutSpawnEntityLiving(
-				horse);
+		final PacketPlayOutSpawnEntityLiving packedt = new PacketPlayOutSpawnEntityLiving(horse);
 
-		plugin.getServer().getScheduler()
-				.runTaskLaterAsynchronously(plugin, new Runnable() {
-					@Override
-					public void run() {
-						if (single_target == null) {
-							for (Player player : loc.getWorld().getPlayers()) {
-								EntityPlayer nmsPlayer = ((CraftPlayer) player)
-										.getHandle();
-								nmsPlayer.playerConnection.sendPacket(packedt);
-								nmsPlayer.playerConnection
-										.sendPacket(packet_skull);
+		plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, new Runnable() {
+			@Override
+			public void run() {
+				if (single_target == null) {
+					for (Player player : loc.getWorld().getPlayers()) {
+						EntityPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
+						nmsPlayer.playerConnection.sendPacket(packedt);
+						nmsPlayer.playerConnection.sendPacket(packet_skull);
 
-								PacketPlayOutAttachEntity pa = new PacketPlayOutAttachEntity(
-										0, horse, skull);
-								nmsPlayer.playerConnection.sendPacket(pa);
-							}
-						} else {
-							EntityPlayer nmsPlayer = ((CraftPlayer) single_target)
-									.getHandle();
-							nmsPlayer.playerConnection.sendPacket(packedt);
-							nmsPlayer.playerConnection.sendPacket(packet_skull);
-
-							PacketPlayOutAttachEntity pa = new PacketPlayOutAttachEntity(
-									0, horse, skull);
-							nmsPlayer.playerConnection.sendPacket(pa);
-							HologramOld.this.packets.add(packedt);
-							HologramOld.this.packets.add(packet_skull);
-							HologramOld.this.packets.add(pa);
-						}
+						PacketPlayOutAttachEntity pa = new PacketPlayOutAttachEntity(horse, skull);
+						nmsPlayer.playerConnection.sendPacket(pa);
 					}
-				}, 4L);
+				} else {
+					EntityPlayer nmsPlayer = ((CraftPlayer) single_target).getHandle();
+					nmsPlayer.playerConnection.sendPacket(packedt);
+					nmsPlayer.playerConnection.sendPacket(packet_skull);
+
+					PacketPlayOutAttachEntity pa = new PacketPlayOutAttachEntity(horse, skull);
+					nmsPlayer.playerConnection.sendPacket(pa);
+					HologramOld.this.packets.add(packedt);
+					HologramOld.this.packets.add(packet_skull);
+					HologramOld.this.packets.add(pa);
+				}
+			}
+		}, 4L);
 
 		return Arrays.asList(skull.getId(), horse.getId());
 	}

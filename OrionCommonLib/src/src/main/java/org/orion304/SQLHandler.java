@@ -23,8 +23,8 @@ public class SQLHandler {
 	 * 
 	 * @throws ClassNotFoundException
 	 */
-	public SQLHandler(String host, int port, String database, String username,
-			String password) {
+	public SQLHandler(OrionPlugin plugin, String host, int port,
+			String database, String username, String password) {
 		this.centralJdbcUrl = "jdbc:mysql://" + host + ":" + port + "/"
 				+ database + "?autoReconnect=true";
 		this.centralDbUsername = username;

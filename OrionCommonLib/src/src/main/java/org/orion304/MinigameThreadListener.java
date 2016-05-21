@@ -30,8 +30,7 @@ public class MinigameThreadListener implements Listener {
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onInventoryClick(InventoryClickEvent event) {
-		Player player = (event.getWhoClicked() instanceof Player) ? (Player) event
-				.getWhoClicked() : null;
+		Player player = (event.getWhoClicked() instanceof Player) ? (Player) event.getWhoClicked() : null;
 		ItemStack item = event.getCurrentItem();
 		if (this.parent.handleInteract(player, item)) {
 			event.setCancelled(true);
@@ -66,18 +65,14 @@ public class MinigameThreadListener implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event) {
 
 		if (this.parent.state == GameState.OFF) {
-			final int num = this.parent.playerThreshold
-					- Bukkit.getOnlinePlayers().length;
+			final int num = this.parent.playerThreshold - Bukkit.getOnlinePlayers().size();
 			if (num > 0) {
 				new BukkitRunnable() {
 
 					@Override
 					public void run() {
-						Bukkit.getServer().broadcastMessage(
-								ChatColor.GRAY + "The game will start once "
-										+ ChatColor.RED + ChatColor.UNDERLINE
-										+ num + ChatColor.GRAY.toString()
-										+ " more players join!");
+						Bukkit.getServer().broadcastMessage(ChatColor.GRAY + "The game will start once " + ChatColor.RED
+								+ ChatColor.UNDERLINE + num + ChatColor.GRAY.toString() + " more players join!");
 
 					}
 
@@ -91,8 +86,7 @@ public class MinigameThreadListener implements Listener {
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		for (World w : this.parent.plugin.getServer().getWorlds()) {
 			String wname = w.getName();
-			new File(wname + "/playerdata/" + event.getPlayer().getUniqueId()
-					+ ".dat").delete();
+			new File(wname + "/playerdata/" + event.getPlayer().getUniqueId() + ".dat").delete();
 		}
 	}
 
